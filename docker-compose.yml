@@ -1,0 +1,91 @@
+services:
+  # Web Server
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./backend:/var/www/backend
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php
+
+  # Backend API (Laravel / PHP-FPM)
+  php:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - ./backend:/var/www/backend
+    environment:
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - redis
+
+  # Laravel Queue Worker
+  queue:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    command: php artisan queue:work --tries=3
+    volumes:
+      - ./backend:/var/www/backend
+    depends_on:
+      - redis
+      - postgres
+
+  # Laravel Reverb (WebSockets)
+  reverb:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    command: php artisan reverb:start --debug
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/var/www/backend
+    depends_on:
+      - redis
+
+  # Database
+  postgres:
+    image: postgres:18-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: restall_db
+      POSTGRES_USER: restall_user
+      POSTGRES_PASSWORD: secretpassword
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # Cache & Queues
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+  # Local SMTP Testing
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  # Frontend (Vue.js / Vite)
+  vue:
+    image: node:24-alpine
+    working_dir: /app
+    command: npm run dev -- --host
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./web:/app
+
+volumes:
+  pgdata:
+  redisdata:
