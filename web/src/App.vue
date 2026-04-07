@@ -10,3 +10,9 @@ onMounted(() => {
       });
 });
 </script>
+
+<template>
+  <div>
+    <h1>RestAll - Frontend</h1>
+  </div>
+</template>
