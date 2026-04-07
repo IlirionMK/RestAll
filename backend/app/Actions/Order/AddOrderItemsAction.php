@@ -14,14 +14,21 @@ class AddOrderItemsAction
 
             $order->items()->create([
                 'menu_item_id' => $item['menu_item_id'],
+                'name' => $menuItem->name,
+                'price' => $menuItem->price,
                 'quantity' => $item['quantity'],
-                'price_at_order' => $menuItem->price,
                 'status' => 'ordered',
                 'comment' => $item['comment'] ?? null,
             ]);
 
-            $order->increment('total_price', $menuItem->price * $item['quantity']);
+            $order->increment('total_amount', $menuItem->price * $item['quantity']);
         }
+
+        event(new \App\Events\UserActionPerformed(
+            action: 'order.items_added',
+            model: $order,
+            payload: ['items_count' => count($items)]
+        ));
 
         return $order;
     }

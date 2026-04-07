@@ -19,7 +19,12 @@ class OrderPolicy
 
     public function addItems(User $user, Order $order): bool
     {
-        return $user->role === 'waiter' && $order->status === 'open';
+        return $user->role === 'waiter' && $order->status === 'pending';
+    }
+
+    public function pay(User $user, Order $order): bool
+    {
+        return in_array($user->role, ['admin', 'waiter']) && $order->status === 'pending';
     }
 
     public function close(User $user): bool

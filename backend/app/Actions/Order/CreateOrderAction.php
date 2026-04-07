@@ -4,6 +4,7 @@ namespace App\Actions\Order;
 
 use App\Models\Order;
 use App\Models\Table;
+use App\Events\UserActionPerformed;
 
 class CreateOrderAction
 {
@@ -18,6 +19,12 @@ class CreateOrderAction
         ]);
 
         Table::where('id', $data['table_id'])->update(['status' => 'occupied']);
+
+        event(new UserActionPerformed(
+            action: 'order.created',
+            model: $order,
+            payload: ['table_id' => $data['table_id']]
+        ));
 
         return $order;
     }

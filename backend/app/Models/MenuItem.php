@@ -6,11 +6,12 @@ use App\Traits\BelongsToRestaurant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 #[Fillable(['menu_category_id', 'name', 'description', 'price', 'photo_url', 'is_available', 'restaurant_id'])]
 class MenuItem extends Model
 {
-    use BelongsToRestaurant;
+    use BelongsToRestaurant, HasFactory;
 
     protected function casts(): array
     {

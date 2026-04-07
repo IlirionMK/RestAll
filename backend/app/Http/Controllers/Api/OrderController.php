@@ -44,7 +44,6 @@ class OrderController extends Controller
     {
         return response()->json($action->execute($order, $request->validated()['items']), 201);
     }
-
     public function removeItem(OrderItem $orderItem, RemoveOrderItemRequest $request, RemoveOrderItemAction $action): JsonResponse
     {
         $action->execute($orderItem);
