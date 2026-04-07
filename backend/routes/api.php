@@ -1,13 +1,73 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\MenuItemController;
+use App\Http\Controllers\Api\{AuditLogController,
+    AuthController,
+    MenuItemController,
+    MenuCategoryController,
+    TableController,
+    UserController,
+    ReservationController,
+    OrderController,
+    KitchenController};
 
-Route::prefix('menu')->group(function () {
-    Route::post('/items', [MenuItemController::class, 'store']);
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [\Laravel\Fortify\Http\Controllers\RegisteredUserController::class, 'store']);
+    Route::post('/login', [\Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::class, 'store']);
+    Route::post('/forgot-password', [\Laravel\Fortify\Http\Controllers\PasswordResetLinkController::class, 'store']);
+    Route::post('/reset-password', [\Laravel\Fortify\Http\Controllers\NewPasswordController::class, 'store']);
+    Route::get('/google', [AuthController::class, 'googleRedirect']);
 });
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::prefix('auth')->group(function () {
+        Route::post('/2fa/verify', [AuthController::class, 'verify2fa']);
+        Route::post('/refresh', [AuthController::class, 'refresh']);
+    });
+
+    Route::prefix('users')->group(function () {
+        Route::get('/me', [UserController::class, 'me']);
+        Route::put('/me', [UserController::class, 'updateMe']);
+        Route::post('/me/email', [UserController::class, 'requestEmailChange']);
+        Route::post('/me/2fa/enable', [UserController::class, 'enable2fa']);
+        Route::get('/', [UserController::class, 'index']);
+        Route::post('/', [UserController::class, 'store']);
+        Route::patch('/{user}/role', [UserController::class, 'updateRole']);
+        Route::delete('/{user}', [UserController::class, 'destroy']);
+    });
+
+    Route::prefix('menu')->group(function () {
+        Route::get('/categories', [MenuCategoryController::class, 'index']);
+        Route::post('/items', [MenuItemController::class, 'store']);
+        Route::put('/items/{menuItem}', [MenuItemController::class, 'update']);
+        Route::patch('/items/{menuItem}/availability', [MenuItemController::class, 'toggleAvailability']);
+        Route::delete('/items/{menuItem}', [MenuItemController::class, 'destroy']);
+    });
+
+    Route::prefix('tables')->group(function () {
+        Route::get('/', [TableController::class, 'index']);
+        Route::patch('/{table}/status', [TableController::class, 'updateStatus']);
+    });
+
+    Route::prefix('reservations')->group(function () {
+        Route::get('/', [ReservationController::class, 'index']);
+        Route::post('/', [ReservationController::class, 'store']);
+        Route::delete('/{reservation}', [ReservationController::class, 'destroy']);
+    });
+
+    Route::prefix('orders')->group(function () {
+        Route::get('/', [OrderController::class, 'index']);
+        Route::post('/', [OrderController::class, 'store']);
+        Route::get('/{order}', [OrderController::class, 'show']);
+        Route::post('/{order}/items', [OrderController::class, 'addItems']);
+        Route::delete('/items/{orderItem}', [OrderController::class, 'removeItem']);
+        Route::patch('/{order}/pay', [OrderController::class, 'pay']);
+    });
+
+    Route::prefix('kitchen')->group(function () {
+        Route::get('/tickets', [KitchenController::class, 'index']);
+        Route::patch('/tickets/{orderItem}/status', [KitchenController::class, 'updateStatus']);
+    });
+    Route::get('/logs', [AuditLogController::class, 'index']);
+});
