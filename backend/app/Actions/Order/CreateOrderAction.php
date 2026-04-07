@@ -15,7 +15,7 @@ class CreateOrderAction
             'user_id' => $waiterId,
             'restaurant_id' => $restaurantId,
             'status' => 'pending',
-            'total_price' => 0,
+            'total_amount' => 0,
         ]);
 
         Table::where('id', $data['table_id'])->update(['status' => 'occupied']);
