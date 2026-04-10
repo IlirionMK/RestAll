@@ -1,0 +1,54 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- App Name -->
+    <sys:String x:Key="AppName">RestAll Desktop</sys:String>
+    <sys:String x:Key="WelcomeMessage">Welcome to RestAll Desktop!</sys:String>
+
+    <!-- Login View -->
+    <sys:String x:Key="EmailLabel">Email</sys:String>
+    <sys:String x:Key="PasswordLabel">Hasło</sys:String>
+    <sys:String x:Key="TwoFactorLabel">Kod 2FA</sys:String>
+    <sys:String x:Key="LoginButton">Zaloguj</sys:String>
+    <sys:String x:Key="VerifyTwoFactorButton">Zweryfikuj 2FA</sys:String>
+
+    <!-- Main Window -->
+    <sys:String x:Key="OpenMenuButton">Open Menu</sys:String>
+    <sys:String x:Key="OpenTablesButton">Open Tables</sys:String>
+    <sys:String x:Key="OpenOrdersButton">Open Orders</sys:String>
+    <sys:String x:Key="OpenKitchenButton">Open Kitchen</sys:String>
+
+    <!-- Menu View -->
+    <sys:String x:Key="MenuTitle">Menu</sys:String>
+    <sys:String x:Key="LoadMenuButton">Load Menu</sys:String>
+    <sys:String x:Key="Available">Dostępne</sys:String>
+    <sys:String x:Key="NotAvailable">Niedostępne</sys:String>
+
+    <!-- Tables View -->
+    <sys:String x:Key="TablesTitle">Tables</sys:String>
+    <sys:String x:Key="LoadTablesButton">Load Tables</sys:String>
+    <sys:String x:Key="Capacity">Capacity</sys:String>
+    <sys:String x:Key="Status">Status</sys:String>
+    <sys:String x:Key="AvailableStatus">Available</sys:String>
+    <sys:String x:Key="OccupiedStatus">Occupied</sys:String>
+    <sys:String x:Key="ReservedStatus">Reserved</sys:String>
+    <sys:String x:Key="CleaningStatus">Cleaning</sys:String>
+
+    <!-- Orders View -->
+    <sys:String x:Key="OrdersTitle">Orders</sys:String>
+    <sys:String x:Key="LoadOrdersButton">Load Orders</sys:String>
+    <sys:String x:Key="OrderId">Order ID</sys:String>
+    <sys:String x:Key="Total">Total</sys:String>
+    <sys:String x:Key="Quantity">Qty</sys:String>
+    <sys:String x:Key="PayButton">Pay</sys:String>
+
+    <!-- Kitchen View -->
+    <sys:String x:Key="KitchenTitle">Kitchen Tickets</sys:String>
+    <sys:String x:Key="LoadTicketsButton">Load Tickets</sys:String>
+    <sys:String x:Key="TicketId">Ticket ID</sys:String>
+    <sys:String x:Key="Price">Price</sys:String>
+    <sys:String x:Key="Table">Table</sys:String>
+    <sys:String x:Key="PreparingButton">Preparing</sys:String>
+    <sys:String x:Key="ReadyButton">Ready</sys:String>
+</ResourceDictionary>
