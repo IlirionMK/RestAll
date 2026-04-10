@@ -1,0 +1,41 @@
+{
+  "admin": {
+    "dashboard": "Panel główny",
+    "menu": "Menu",
+    "staff": "Personel",
+    "logout": "Wyloguj się",
+    "role": "Administrator",
+    "stats": {
+      "revenue": "Utarg zmiany",
+      "open_checks": "Otwarte rachunki",
+      "guests": "Goście na sali"
+    },
+    "tables": {
+      "title": "Aktywne stoliki",
+      "number": "Stolik",
+      "waiter": "Kelner",
+      "status": "Status",
+      "total": "Suma (PLN)"
+    }
+  },
+  "auth": {
+    "login_title": "Logowanie",
+    "register_title": "Utwórz konto",
+    "name": "Imię i nazwisko",
+    "email": "Adres e-mail",
+    "password": "Hasło",
+    "submit_login": "Zaloguj się",
+    "submit_register": "Zarejestruj się",
+    "google_login": "Kontynuuj z Google",
+    "no_account": "Nie masz konta?",
+    "have_account": "Masz już konto?",
+    "to_register": "Zarejestruj się",
+    "to_login": "Zaloguj się"
+  },
+  "public": {
+    "welcome": "Witamy w RestAll",
+    "subtitle": "Nowoczesny system zarządzania restauracją",
+    "login_btn": "Zaloguj się do systemu",
+    "register_btn": "Utwórz nowe konto"
+  }
+}

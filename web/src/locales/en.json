@@ -1,0 +1,41 @@
+{
+  "admin": {
+    "dashboard": "Dashboard",
+    "menu": "Menu",
+    "staff": "Staff",
+    "logout": "Logout",
+    "role": "Administrator",
+    "stats": {
+      "revenue": "Shift Revenue",
+      "open_checks": "Open Checks",
+      "guests": "Guests in Hall"
+    },
+    "tables": {
+      "title": "Active Tables",
+      "number": "Table",
+      "waiter": "Waiter",
+      "status": "Status",
+      "total": "Total (PLN)"
+    }
+  },
+  "auth": {
+    "login_title": "Sign In",
+    "register_title": "Create Account",
+    "name": "Full Name",
+    "email": "Email Address",
+    "password": "Password",
+    "submit_login": "Sign In",
+    "submit_register": "Sign Up",
+    "google_login": "Continue with Google",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "to_register": "Sign up",
+    "to_login": "Sign in"
+  },
+  "public": {
+    "welcome": "Welcome to RestAll",
+    "subtitle": "Modern Restaurant Management System",
+    "login_btn": "Sign In to System",
+    "register_btn": "Create New Account"
+  }
+}

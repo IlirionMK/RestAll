@@ -18,16 +18,14 @@ class CreateNewUser implements CreatesNewUsers
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
             'password' => $this->passwordRules(),
-            'role' => ['required', 'string', Rule::in(['admin', 'waiter', 'chef', 'guest'])],
-            'restaurant_id' => ['nullable', 'exists:restaurants,id'],
         ])->validate();
 
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
-            'role' => $input['role'],
-            'restaurant_id' => $input['restaurant_id'] ?? null,
+            'role' => 'chef',
+            'restaurant_id' => null,
         ]);
     }
 }

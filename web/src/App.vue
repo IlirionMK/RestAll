@@ -5,14 +5,11 @@ import { echo } from './echo';
 onMounted(() => {
   echo.channel('test-channel')
       .listen('.test.event', (data: any) => {
-        console.log('Socket received:', data.content);
-        alert('Backend message: ' + data.content);
+        console.log('Real-time notification:', data.content);
       });
 });
 </script>
 
 <template>
-  <div>
-    <h1>RestAll - Frontend</h1>
-  </div>
+  <router-view />
 </template>
