@@ -3,9 +3,7 @@ import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import {
     LayoutDashboard,
-    Utensils,
     Calendar,
-    Star,
     Instagram,
     Facebook,
     Twitter

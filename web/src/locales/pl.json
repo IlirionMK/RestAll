@@ -1,41 +1,67 @@
 {
-  "admin": {
-    "dashboard": "Panel główny",
+  "nav": {
+    "home": "Główna",
     "menu": "Menu",
-    "staff": "Personel",
-    "logout": "Wyloguj się",
-    "role": "Administrator",
-    "stats": {
-      "revenue": "Utarg zmiany",
-      "open_checks": "Otwarte rachunki",
-      "guests": "Goście na sali"
-    },
-    "tables": {
-      "title": "Aktywne stoliki",
-      "number": "Stolik",
-      "waiter": "Kelner",
-      "status": "Status",
-      "total": "Suma (PLN)"
-    }
-  },
-  "auth": {
-    "login_title": "Logowanie",
-    "register_title": "Utwórz konto",
-    "name": "Imię i nazwisko",
-    "email": "Adres e-mail",
-    "password": "Hasło",
-    "submit_login": "Zaloguj się",
-    "submit_register": "Zarejestruj się",
-    "google_login": "Kontynuuj z Google",
-    "no_account": "Nie masz konta?",
-    "have_account": "Masz już konto?",
-    "to_register": "Zarejestruj się",
-    "to_login": "Zaloguj się"
+    "reviews": "Opinie",
+    "bookings": "Rezerwacje",
+    "contact": "Kontakt",
+    "privacy": "Prywatność",
+    "terms": "Regulamin"
   },
   "public": {
-    "welcome": "Witamy w RestAll",
-    "subtitle": "Nowoczesny system zarządzania restauracją",
-    "login_btn": "Zaloguj się do systemu",
-    "register_btn": "Utwórz nowe konto"
+    "hero_title": "Nowy Standard Degustacji",
+    "hero_subtitle": "Poznaj kulinarną doskonałość dzięki naszemu nowoczesnemu ekosystemowi.",
+    "book_btn": "Zarezerwuj stolik",
+    "feature_1_title": "Wyśmienity Smak",
+    "feature_1_desc": "Nasi szefowie kuchni używają tylko najświeższych organicznych składników.",
+    "feature_2_title": "Przytulna Atmosfera",
+    "feature_2_desc": "Idealne miejsce na rodzinne kolacje lub romantyczne randki.",
+    "feature_3_title": "Szybka Obsługa",
+    "feature_3_desc": "Cyfrowy system zamówień dla Twojego komfortu.",
+    "my_bookings": "Moje Rezerwacje",
+    "dashboard": "Panel sterowania"
+  },
+  "bookings": {
+    "title": "Zarezerwuj stolik",
+    "subtitle": "Zapewnij sobie miejsce в RestAll",
+    "guests": "Liczba gości",
+    "date": "Data",
+    "time": "Godzina",
+    "submit": "Potwierdź rezerwację",
+    "people": "Osoby"
+  },
+  "auth": {
+    "to_login": "Zaloguj się",
+    "to_register": "Zarejestruj się",
+    "login_title": "Witaj ponownie",
+    "login_subtitle": "Zaloguj się, aby uzyskać dostęp do konta i rezerwacji.",
+    "register_title": "Utwórz konto",
+    "register_subtitle": "Dołącz do naszej społeczności, aby cieszyć się lepszą obsługą.",
+    "email": "Adres e-mail",
+    "password": "Hasło",
+    "name": "Imię i nazwisko",
+    "confirm_password": "Potwierdź hasło",
+    "submit_register": "Zarejestruj się",
+    "no_account": "Nie masz konta?",
+    "have_account": "Masz już konto?"
+  },
+  "order": {
+    "table": "Stolik",
+    "type": {
+      "dine_in": "Na miejscu",
+      "take_away": "Na wynos"
+    },
+    "loading_menu": "Ładowanie pysznego menu...",
+    "cart": "Twoje zamówienie",
+    "cart_empty": "Twój koszyk jest pusty.",
+    "checkout": "Złóż zamówienie"
+  },
+  "reviews": {
+    "write": "Napisz opinię"
+  },
+  "footer": {
+    "explore": "Eksploruj",
+    "support": "Wsparcie",
+    "follow_us": "Obserwuj nas"
   }
 }

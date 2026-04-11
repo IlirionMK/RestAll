@@ -1,54 +1,49 @@
 <template>
-  <div class="space-y-12">
-    <section class="text-center py-12">
-      <h1 class="text-5xl font-black mb-4">RestAll</h1>
-      <p class="text-xl text-gray-500">{{ t('public.welcome_msg') }}</p>
+  <div class="space-y-24 pb-20">
+    <section class="relative h-[80vh] flex items-center justify-center overflow-hidden rounded-[3rem] mx-4 shadow-2xl">
+      <div class="absolute inset-0 bg-[#1F2937]/60 z-10"></div>
+      <img
+          src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=2070"
+          class="absolute inset-0 w-full h-full object-cover scale-105"
+          alt="Hero"
+      />
+
+      <div class="relative z-20 text-center max-w-3xl px-6">
+        <h1 class="text-5xl md:text-7xl font-black text-[#FAF9F6] tracking-tighter mb-6">
+          {{ t('public.hero_title') }}
+        </h1>
+        <p class="text-lg md:text-xl text-[#FAF9F6]/90 font-medium mb-10 leading-relaxed">
+          {{ t('public.hero_subtitle') }}
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <BaseButton to="/bookings" variant="primary" size="lg" class="w-full sm:w-auto px-12 py-5 text-lg bg-[#C29B40] hover:bg-[#b08b39] text-[#FAF9F6] border-none shadow-lg shadow-[#C29B40]/30 transition-all rounded-2xl">
+            {{ t('public.book_btn') }}
+          </BaseButton>
+          <BaseButton to="/menu" variant="secondary" size="lg" class="w-full sm:w-auto px-12 py-5 text-lg bg-white/10 backdrop-blur-md border border-white/20 text-[#FAF9F6] hover:bg-white/20 transition-all rounded-2xl">
+            {{ t('nav.menu') }}
+          </BaseButton>
+        </div>
+      </div>
     </section>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div v-if="!authStore.activeBooking" class="p-8 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-xl">
-        <CalendarCheck class="w-12 h-12 text-emerald-500 mb-4" />
-        <h2 class="text-2xl font-bold mb-2">{{ t('public.book_table') }}</h2>
-        <p class="text-gray-500 mb-6">{{ t('public.book_desc') }}</p>
-        <router-link to="/bookings" class="inline-block px-8 py-4 bg-emerald-600 text-white font-bold rounded-2xl">
-          {{ t('public.book_btn') }}
-        </router-link>
-      </div>
-
-      <div v-else class="p-8 bg-emerald-50 dark:bg-emerald-500/10 rounded-3xl border border-emerald-100 dark:border-emerald-500/20">
-        <Utensils class="w-12 h-12 text-emerald-500 mb-4" />
-        <h2 class="text-2xl font-bold mb-2 text-emerald-900 dark:text-emerald-100">
-          {{ authStore.canOrder ? t('public.ready_to_order') : t('public.waiting_confirmation') }}
-        </h2>
-        <p class="mb-6 text-emerald-700/70 dark:text-emerald-400">
-          {{ authStore.canOrder ? t('public.table_msg', { id: authStore.activeBooking.table_id }) : t('public.please_wait') }}
+    <section class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+      <div v-for="i in 3" :key="i" class="space-y-4">
+        <div class="w-16 h-16 bg-[#14532D]/10 rounded-3xl flex items-center justify-center mx-auto transition-transform hover:scale-105 duration-300">
+          <component :is="[Utensils, Star, Clock][i-1]" class="w-8 h-8 text-[#14532D]" />
+        </div>
+        <h3 class="text-xl font-black text-[#1F2937] dark:text-[#FAF9F6]">{{ t(`public.feature_${i}_title`) }}</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+          {{ t(`public.feature_${i}_desc`) }}
         </p>
-        <router-link
-            v-if="authStore.canOrder"
-            :to="`/order/${authStore.activeBooking.table_id}`"
-            class="inline-block px-8 py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg"
-        >
-          {{ t('public.open_menu') }}
-        </router-link>
       </div>
-
-      <div class="p-8 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-xl">
-        <Star class="w-12 h-12 text-amber-500 mb-4" />
-        <h2 class="text-2xl font-bold mb-2">{{ t('public.reviews_title') }}</h2>
-        <p class="text-gray-500 mb-6">{{ t('public.reviews_desc') }}</p>
-        <router-link to="/reviews" class="inline-block px-8 py-4 bg-gray-900 text-white font-bold rounded-2xl">
-          {{ t('public.read_reviews') }}
-        </router-link>
-      </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { CalendarCheck, Utensils, Star } from 'lucide-vue-next';
-import { useAuthStore } from '@/stores/auth.store';
+import { Utensils, Star, Clock } from 'lucide-vue-next';
+import BaseButton from '@/components/UI/BaseButton.vue';
 
 const { t } = useI18n();
-const authStore = useAuthStore();
 </script>

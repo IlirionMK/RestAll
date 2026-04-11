@@ -1,28 +1,24 @@
 <template>
-  <span :class="['px-2.5 py-1 rounded-full text-xs font-medium', variantClasses]">
-    {{ text }}
+  <span :class="[
+    'inline-flex items-center px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-xl',
+    variantClasses[variant]
+  ]">
+    <slot />
   </span>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-
-const props = defineProps<{
-  text: string;
-  variant?: 'success' | 'warning' | 'info' | 'danger';
-}>();
-
-const variantClasses = computed(() => {
-  switch (props.variant) {
-    case 'success':
-      return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400';
-    case 'warning':
-      return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
-    case 'danger':
-      return 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400';
-    case 'info':
-    default:
-      return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400';
+const props = defineProps({
+  variant: {
+    type: String,
+    default: 'default'
   }
 });
+
+const variantClasses: Record<string, string> = {
+  default: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300',
+  green: 'bg-restall-green text-restall-light',
+  gold: 'bg-restall-gold text-restall-light',
+  dark: 'bg-restall-dark text-restall-light dark:bg-restall-light dark:text-restall-dark'
+};
 </script>

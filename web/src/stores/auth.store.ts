@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import api, { getCsrfCookie } from '../api/axios';
+import { API } from '@/api';
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<any>(null);
@@ -12,25 +12,51 @@ export const useAuthStore = defineStore('auth', () => {
 
     const fetchUser = async () => {
         try {
-            const { data } = await api.get('/api/users/me');
-            user.value = data.user;
-            activeBooking.value = data.active_booking;
-        } catch {
+            const data = await API.auth.getCurrentUser();
+            user.value = data;
+            activeBooking.value = data?.active_booking || null;
+        } catch (error) {
             user.value = null;
             activeBooking.value = null;
         }
     };
 
     const login = async (credentials: any) => {
-        await getCsrfCookie();
-        await api.post('/api/auth/login', credentials);
-        await fetchUser();
+        try {
+            await API.auth.login(credentials);
+            await fetchUser();
+        } catch (error) {
+            user.value = null;
+            throw error;
+        }
+    };
+
+    const register = async (userData: any) => {
+        try {
+            await API.auth.register(userData);
+        } catch (error) {
+            throw error;
+        }
     };
 
     const logout = async () => {
-        try { await api.post('/api/auth/logout'); }
-        finally { user.value = null; activeBooking.value = null; }
+        try {
+            await API.auth.logout();
+        } finally {
+            user.value = null;
+            activeBooking.value = null;
+        }
     };
 
-    return { user, activeBooking, isAuth, userRole, canOrder, fetchUser, login, logout };
+    return {
+        user,
+        activeBooking,
+        isAuth,
+        userRole,
+        canOrder,
+        fetchUser,
+        login,
+        register,
+        logout
+    };
 });

@@ -1,20 +1,22 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+    darkMode: 'class',
     content: [
         "./index.html",
         "./src/**/*.{vue,js,ts,jsx,tsx}",
     ],
-    darkMode: 'class',
     theme: {
         extend: {
             colors: {
-                emerald: {
-                    50: '#ecfdf5',
-                    100: '#d1fae5',
-                    500: '#10b981',
-                    600: '#059669',
-                    700: '#047857',
+                restall: {
+                    light: '#FAF9F6',
+                    dark: '#1F2937',
+                    green: '#14532D',
+                    gold: '#C29B40',
                 }
+            },
+            borderRadius: {
+                'squircle': '1.5rem',
             }
         },
     },

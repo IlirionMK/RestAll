@@ -4,10 +4,10 @@ import pl from '../locales/pl.json';
 
 export const i18n = createI18n({
     legacy: false,
-    locale: 'pl',
+    locale: localStorage.getItem('locale') || 'en',
     fallbackLocale: 'en',
     messages: {
         en,
         pl
-    },
+    }
 });

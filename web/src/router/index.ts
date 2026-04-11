@@ -13,8 +13,12 @@ const routes: RouteRecordRaw[] = [
             { path: 'login', name: 'Login', component: () => import('../pages/auth/Login.vue'), meta: { guestOnly: true } },
             { path: 'register', name: 'Register', component: () => import('../pages/auth/Register.vue'), meta: { guestOnly: true } },
             { path: 'bookings', name: 'UserBookings', component: () => import('../pages/public/Bookings.vue'), meta: { requiresAuth: true } },
+            { path: 'menu', name: 'PublicMenu', component: () => import('../pages/public/Order.vue') },
             { path: 'order/:tableId', name: 'Order', component: () => import('../pages/public/Order.vue'), meta: { requiresAuth: true } },
             { path: 'reviews', name: 'Reviews', component: () => import('../pages/public/Reviews.vue') },
+            { path: 'contact', name: 'Contact', component: () => import('../pages/public/Home.vue') },
+            { path: 'privacy', name: 'Privacy', component: () => import('../pages/public/Home.vue') },
+            { path: 'terms', name: 'Terms', component: () => import('../pages/public/Home.vue') }
         ]
     },
     {

@@ -3,40 +3,48 @@
       :is="to ? 'router-link' : 'button'"
       :to="to"
       :class="[
-      'inline-flex items-center justify-center font-bold transition-all active:scale-95 disabled:opacity-50',
-      variants[variant],
-      sizes[size]
+      'inline-flex items-center justify-center font-bold transition-all duration-300 outline-none disabled:opacity-50 disabled:cursor-not-allowed',
+      sizeClasses[size],
+      variantClasses[variant],
+      squircle ? 'rounded-squircle' : 'rounded-2xl'
     ]"
+      v-bind="$attrs"
   >
-    <slot name="icon-left" />
     <slot />
-    <slot name="icon-right" />
   </component>
 </template>
 
 <script setup lang="ts">
-interface Props {
-  to?: string;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-}
-
-withDefaults(defineProps<Props>(), {
-  variant: 'primary',
-  size: 'md'
+const props = defineProps({
+  to: {
+    type: String,
+    default: undefined
+  },
+  variant: {
+    type: String,
+    default: 'primary'
+  },
+  size: {
+    type: String,
+    default: 'md'
+  },
+  squircle: {
+    type: Boolean,
+    default: false
+  }
 });
 
-const variants = {
-  primary: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 rounded-xl',
-  secondary: 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 rounded-xl',
-  outline: 'border-2 border-gray-200 dark:border-gray-700 hover:border-emerald-500 rounded-xl',
-  ghost: 'hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl',
-  danger: 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl'
+const sizeClasses: Record<string, string> = {
+  sm: 'px-4 py-2 text-sm',
+  md: 'px-6 py-3 text-base',
+  lg: 'px-8 py-4 text-lg'
 };
 
-const sizes = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-5 py-2.5 text-sm',
-  lg: 'px-8 py-4 text-base'
+const variantClasses: Record<string, string> = {
+  primary: 'bg-restall-gold hover:opacity-90 text-restall-light shadow-lg shadow-restall-gold/30',
+  secondary: 'bg-restall-green hover:opacity-90 text-restall-light shadow-lg shadow-restall-green/30',
+  outline: 'border-2 border-restall-dark dark:border-restall-light text-restall-dark dark:text-restall-light hover:bg-restall-dark hover:text-restall-light dark:hover:bg-restall-light dark:hover:text-restall-dark',
+  ghost: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50',
+  danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/30'
 };
 </script>

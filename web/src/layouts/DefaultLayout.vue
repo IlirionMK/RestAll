@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-[#FAF9F6] dark:bg-[#1F2937] text-[#1F2937] dark:text-[#FAF9F6] font-sans antialiased selection:bg-[#14532D] selection:text-[#FAF9F6] transition-colors duration-300">
+  <div class="min-h-screen flex flex-col bg-restall-light dark:bg-restall-dark text-restall-dark dark:text-restall-light font-sans antialiased selection:bg-restall-green selection:text-restall-light transition-colors duration-300">
     <AppHeader />
 
     <main class="flex-1 flex flex-col w-full relative">

@@ -1,41 +1,67 @@
 {
-  "admin": {
-    "dashboard": "Dashboard",
+  "nav": {
+    "home": "Home",
     "menu": "Menu",
-    "staff": "Staff",
-    "logout": "Logout",
-    "role": "Administrator",
-    "stats": {
-      "revenue": "Shift Revenue",
-      "open_checks": "Open Checks",
-      "guests": "Guests in Hall"
-    },
-    "tables": {
-      "title": "Active Tables",
-      "number": "Table",
-      "waiter": "Waiter",
-      "status": "Status",
-      "total": "Total (PLN)"
-    }
-  },
-  "auth": {
-    "login_title": "Sign In",
-    "register_title": "Create Account",
-    "name": "Full Name",
-    "email": "Email Address",
-    "password": "Password",
-    "submit_login": "Sign In",
-    "submit_register": "Sign Up",
-    "google_login": "Continue with Google",
-    "no_account": "Don't have an account?",
-    "have_account": "Already have an account?",
-    "to_register": "Sign up",
-    "to_login": "Sign in"
+    "reviews": "Reviews",
+    "bookings": "Bookings",
+    "contact": "Contact",
+    "privacy": "Privacy",
+    "terms": "Terms"
   },
   "public": {
-    "welcome": "Welcome to RestAll",
-    "subtitle": "Modern Restaurant Management System",
-    "login_btn": "Sign In to System",
-    "register_btn": "Create New Account"
+    "hero_title": "A New Standard of Dining",
+    "hero_subtitle": "Experience culinary excellence with our modern ecosystem.",
+    "book_btn": "Reserve a Table",
+    "feature_1_title": "Exquisite Taste",
+    "feature_1_desc": "Our chefs use only the freshest organic ingredients.",
+    "feature_2_title": "Cozy Atmosphere",
+    "feature_2_desc": "Perfect place for family dinners or romantic dates.",
+    "feature_3_title": "Fast Service",
+    "feature_3_desc": "Digital ordering system for your comfort.",
+    "my_bookings": "My Bookings",
+    "dashboard": "Dashboard"
+  },
+  "bookings": {
+    "title": "Book a Table",
+    "subtitle": "Secure your spot at RestAll",
+    "guests": "Number of Guests",
+    "date": "Date",
+    "time": "Time",
+    "submit": "Confirm Reservation",
+    "people": "People"
+  },
+  "auth": {
+    "to_login": "Log In",
+    "to_register": "Register",
+    "login_title": "Welcome Back",
+    "login_subtitle": "Log in to access your account and bookings.",
+    "register_title": "Create Account",
+    "register_subtitle": "Join our community for a better dining experience.",
+    "email": "Email Address",
+    "password": "Password",
+    "name": "Full Name",
+    "confirm_password": "Confirm Password",
+    "submit_register": "Sign Up",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?"
+  },
+  "order": {
+    "table": "Table",
+    "type": {
+      "dine_in": "Dine In",
+      "take_away": "Take Away"
+    },
+    "loading_menu": "Loading delicious menu items...",
+    "cart": "Your Order",
+    "cart_empty": "Your cart is currently empty.",
+    "checkout": "Place Order"
+  },
+  "reviews": {
+    "write": "Write a Review"
+  },
+  "footer": {
+    "explore": "Explore",
+    "support": "Support",
+    "follow_us": "Follow Us"
   }
 }
