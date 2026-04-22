@@ -2,7 +2,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
+      - "8000:80"
     volumes:
       - ./backend:/var/www/backend
       - ./docker/nginx/conf.d:/etc/nginx/conf.d

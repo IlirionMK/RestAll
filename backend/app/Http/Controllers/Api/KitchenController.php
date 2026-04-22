@@ -9,14 +9,76 @@ use App\Http\Requests\Kitchen\ListKitchenTicketsRequest;
 use App\Http\Requests\Kitchen\UpdateTicketStatusRequest;
 use App\Models\OrderItem;
 use Illuminate\Http\JsonResponse;
+use OpenApi\Attributes as OA;
 
+#[OA\Tag(name: 'Kitchen', description: 'Kitchen Display System (KDS)')]
 class KitchenController extends Controller
 {
+    #[OA\Get(
+        path: '/api/kitchen/tickets',
+        summary: 'Get active kitchen tickets',
+        security: [['bearerAuth' => []]],
+        tags: ['Kitchen']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'List of active tickets',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(
+                properties: [
+                    new OA\Property(property: 'id', type: 'integer', example: 1),
+                    new OA\Property(property: 'order_id', type: 'integer', example: 15),
+                    new OA\Property(property: 'name', type: 'string', example: 'Pizza Margherita'),
+                    new OA\Property(property: 'quantity', type: 'integer', example: 2),
+                    new OA\Property(property: 'comment', type: 'string', nullable: true, example: 'No onions'),
+                    new OA\Property(property: 'status', type: 'string', example: 'ordered')
+                ]
+            )
+        )
+    )]
+    #[OA\Response(response: 401, description: 'Unauthorized')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function index(ListKitchenTicketsRequest $request, ListActiveTicketsAction $action): JsonResponse
     {
         return response()->json($action->execute(), 200);
     }
 
+    #[OA\Patch(
+        path: '/api/kitchen/tickets/{id}/status',
+        summary: 'Update ticket status',
+        security: [['bearerAuth' => []]],
+        tags: ['Kitchen']
+    )]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        required: true,
+        schema: new OA\Schema(type: 'integer'),
+        example: 1
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'status', type: 'string', example: 'cooking')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Ticket status updated',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'status', type: 'string', example: 'cooking')
+            ]
+        )
+    )]
+    #[OA\Response(response: 400, description: 'Bad Request')]
+    #[OA\Response(response: 401, description: 'Unauthorized')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Not Found')]
     public function updateStatus(
         OrderItem $orderItem,
         UpdateTicketStatusRequest $request,
