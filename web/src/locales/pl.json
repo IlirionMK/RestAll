@@ -23,7 +23,7 @@
   },
   "bookings": {
     "title": "Zarezerwuj stolik",
-    "subtitle": "Zapewnij sobie miejsce в RestAll",
+    "subtitle": "Zapewnij sobie miejsce w RestAll",
     "guests": "Liczba gości",
     "date": "Data",
     "time": "Godzina",
@@ -43,7 +43,17 @@
     "confirm_password": "Potwierdź hasło",
     "submit_register": "Zarejestruj się",
     "no_account": "Nie masz konta?",
-    "have_account": "Masz już konto?"
+    "have_account": "Masz już konto?",
+    "logged_in_as": "Zalogowano jako"
+  },
+  "role": {
+    "admin": "Administrator",
+    "chef": "Szef kuchni",
+    "waiter": "Kelner",
+    "guest": "Gość"
+  },
+  "admin": {
+    "logout": "Wyloguj się"
   },
   "order": {
     "table": "Stolik",

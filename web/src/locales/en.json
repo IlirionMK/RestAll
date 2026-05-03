@@ -43,7 +43,17 @@
     "confirm_password": "Confirm Password",
     "submit_register": "Sign Up",
     "no_account": "Don't have an account?",
-    "have_account": "Already have an account?"
+    "have_account": "Already have an account?",
+    "logged_in_as": "Logged in as"
+  },
+  "role": {
+    "admin": "Administrator",
+    "chef": "Chef",
+    "waiter": "Waiter",
+    "guest": "Guest"
+  },
+  "admin": {
+    "logout": "Log Out"
   },
   "order": {
     "table": "Table",

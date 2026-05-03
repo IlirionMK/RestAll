@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\{AuditLogController,
+use App\Http\Controllers\Api\{
+    AuditLogController,
     AuthController,
     MenuItemController,
     MenuCategoryController,
@@ -9,19 +10,25 @@ use App\Http\Controllers\Api\{AuditLogController,
     UserController,
     ReservationController,
     OrderController,
-    KitchenController};
+    KitchenController
+};
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
+use Laravel\Fortify\Http\Controllers\RegisteredUserController;
+use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
+use Laravel\Fortify\Http\Controllers\NewPasswordController;
 
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [\Laravel\Fortify\Http\Controllers\RegisteredUserController::class, 'store']);
-    Route::post('/login', [\Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::class, 'store']);
-    Route::post('/forgot-password', [\Laravel\Fortify\Http\Controllers\PasswordResetLinkController::class, 'store']);
-    Route::post('/reset-password', [\Laravel\Fortify\Http\Controllers\NewPasswordController::class, 'store']);
+    Route::post('/register', [RegisteredUserController::class, 'store']);
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
+    Route::post('/reset-password', [NewPasswordController::class, 'store']);
     Route::get('/google', [AuthController::class, 'googleRedirect']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('auth')->group(function () {
+        Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']);
         Route::post('/2fa/verify', [AuthController::class, 'verify2fa']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
     });
@@ -69,5 +76,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/tickets', [KitchenController::class, 'index']);
         Route::patch('/tickets/{orderItem}/status', [KitchenController::class, 'updateStatus']);
     });
+
     Route::get('/logs', [AuditLogController::class, 'index']);
 });

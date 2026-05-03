@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.store';
+import { UserRole } from '@/types/auth.types';
 import {
     LayoutDashboard,
     Calendar,
@@ -23,26 +24,26 @@ export function useNavigation() {
     };
 
     const publicLinks = [
-        { name: 'Home', path: '/', label: 'nav.home' },
-        { name: 'Menu', path: '/menu', label: 'nav.menu' },
-        { name: 'Reviews', path: '/reviews', label: 'nav.reviews' },
+        { name: 'Home', label: 'nav.home' },
+        { name: 'PublicMenu', label: 'nav.menu' },
+        { name: 'Reviews', label: 'nav.reviews' },
     ];
 
     const footerSections = [
         {
             title: 'footer.explore',
             links: [
-                { label: 'nav.home', path: '/' },
-                { label: 'nav.menu', path: '/menu' },
-                { label: 'nav.bookings', path: '/bookings' },
+                { label: 'nav.home', name: 'Home' },
+                { label: 'nav.menu', name: 'PublicMenu' },
+                { label: 'nav.bookings', name: 'UserBookings' },
             ]
         },
         {
             title: 'footer.support',
             links: [
-                { label: 'nav.contact', path: '/contact' },
-                { label: 'nav.privacy', path: '/privacy' },
-                { label: 'nav.terms', path: '/terms' }
+                { label: 'nav.contact', name: 'Contact' },
+                { label: 'nav.privacy', name: 'Privacy' },
+                { label: 'nav.terms', name: 'Terms' }
             ]
         }
     ];
@@ -56,13 +57,13 @@ export function useNavigation() {
     const userActions = computed(() => {
         const role = authStore.userRole;
         const actions = [
-            { label: 'public.my_bookings', path: '/bookings', icon: Calendar }
+            { label: 'public.my_bookings', name: 'UserBookings', icon: Calendar }
         ];
 
-        if (role === 'admin') {
-            actions.unshift({ label: 'public.dashboard', path: '/admin', icon: LayoutDashboard });
-        } else if (role === 'chef') {
-            actions.unshift({ label: 'public.dashboard', path: '/kitchen', icon: LayoutDashboard });
+        if (role === UserRole.ADMIN) {
+            actions.unshift({ label: 'public.dashboard', name: 'AdminDashboard', icon: LayoutDashboard });
+        } else if (role === UserRole.CHEF) {
+            actions.unshift({ label: 'public.dashboard', name: 'KitchenDashboard', icon: LayoutDashboard });
         }
 
         return actions;

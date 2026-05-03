@@ -15,23 +15,18 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
-  to: {
-    type: String,
-    default: undefined
-  },
-  variant: {
-    type: String,
-    default: 'primary'
-  },
-  size: {
-    type: String,
-    default: 'md'
-  },
-  squircle: {
-    type: Boolean,
-    default: false
-  }
+interface Props {
+  to?: string | object;
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+  squircle?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  to: undefined,
+  variant: 'primary',
+  size: 'md',
+  squircle: false
 });
 
 const sizeClasses: Record<string, string> = {
