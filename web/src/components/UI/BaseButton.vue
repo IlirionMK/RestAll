@@ -3,10 +3,10 @@
       :is="to ? 'router-link' : 'button'"
       :to="to"
       :class="[
-      'inline-flex items-center justify-center font-bold transition-all duration-300 outline-none disabled:opacity-50 disabled:cursor-not-allowed',
+      'inline-flex items-center justify-center font-bold transition-all duration-300 outline-none disabled:opacity-50 disabled:cursor-not-allowed no-underline hover:no-underline',
       sizeClasses[size],
       variantClasses[variant],
-      squircle ? 'rounded-squircle' : 'rounded-2xl'
+      squircle ? 'rounded-squircle' : ''
     ]"
       v-bind="$attrs"
   >
@@ -38,7 +38,7 @@ const sizeClasses: Record<string, string> = {
 const variantClasses: Record<string, string> = {
   primary: 'bg-restall-gold hover:opacity-90 text-restall-light shadow-lg shadow-restall-gold/30',
   secondary: 'bg-restall-green hover:opacity-90 text-restall-light shadow-lg shadow-restall-green/30',
-  outline: 'border-2 border-restall-dark dark:border-restall-light text-restall-dark dark:text-restall-light hover:bg-restall-dark hover:text-restall-light dark:hover:bg-restall-light dark:hover:text-restall-dark',
+  outline: 'border-2 border-white text-white hover:bg-white hover:text-restall-dark',
   ghost: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50',
   danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/30'
 };

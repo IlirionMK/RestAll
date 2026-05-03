@@ -9,12 +9,46 @@ const routes: RouteRecordRaw[] = [
         path: '/',
         component: () => import('../layouts/AuthLayout.vue'),
         children: [
-            { path: '', name: 'Home', component: () => import('../pages/public/Home.vue') },
-            { path: 'login', name: 'Login', component: () => import('../pages/auth/Login.vue'), meta: { guestOnly: true } },
-            { path: 'register', name: 'Register', component: () => import('../pages/auth/Register.vue'), meta: { guestOnly: true } },
-            { path: 'bookings', name: 'UserBookings', component: () => import('../pages/public/Bookings.vue'), meta: { requiresAuth: true } },
-            { path: 'menu', name: 'PublicMenu', component: () => import('../pages/public/Order.vue') },
-            { path: 'order/:tableId', name: 'Order', component: () => import('../pages/public/Order.vue'), meta: { requiresAuth: true } },
+            {
+                path: '',
+                name: 'Home',
+                component: () => import('../pages/public/Home.vue')
+            },
+            {
+                path: 'login',
+                name: 'Login',
+                component: () => import('../pages/auth/Login.vue'),
+                meta: { guestOnly: true }
+            },
+            {
+                path: 'register',
+                name: 'Register',
+                component: () => import('../pages/auth/Register.vue'),
+                meta: { guestOnly: true }
+            },
+            {
+                path: 'restaurant/:restaurantId/book',
+                name: 'BookingForm',
+                component: () => import('../pages/public/Bookings.vue'),
+                meta: { requiresAuth: true }
+            },
+            {
+                path: 'my-bookings',
+                name: 'UserBookings',
+                component: () => import('../pages/public/UserBookings.vue'),
+                meta: { requiresAuth: true }
+            },
+            {
+                path: 'menu',
+                name: 'PublicMenu',
+                component: () => import('../pages/public/Order.vue')
+            },
+            {
+                path: 'order/:tableId',
+                name: 'Order',
+                component: () => import('../pages/public/Order.vue'),
+                meta: { requiresAuth: true }
+            },
             { path: 'reviews', name: 'Reviews', component: () => import('../pages/public/Reviews.vue') },
             { path: 'contact', name: 'Contact', component: () => import('../pages/public/Home.vue') },
             { path: 'privacy', name: 'Privacy', component: () => import('../pages/public/Home.vue') },
@@ -51,8 +85,13 @@ router.beforeEach(async (to) => {
     const authStore = useAuthStore();
 
     if (!isInitialized) {
-        await authStore.fetchUser();
-        isInitialized = true;
+        try {
+            await authStore.fetchUser();
+        } catch (error) {
+            // Silently handle init errors
+        } finally {
+            isInitialized = true;
+        }
     }
 
     const isAuthenticated = authStore.isAuth;

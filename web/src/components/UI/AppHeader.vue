@@ -14,7 +14,7 @@
           <router-link
               v-for="link in publicLinks"
               :key="link.name"
-              :to="{ name: link.name }"
+              :to="{ name: link.name, params: link.params || {} }"
               class="hover:text-restall-gold transition-colors"
               active-class="text-restall-green dark:text-restall-gold"
           >
@@ -78,7 +78,7 @@
                 <router-link
                     v-for="action in userActions"
                     :key="action.name"
-                    :to="{ name: action.name }"
+                    :to="{ name: action.name, params: action.params || {} }"
                     class="flex items-center px-4 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-restall-green transition-colors"
                 >
                   <component :is="action.icon" class="w-4 h-4 mr-3 opacity-70" />

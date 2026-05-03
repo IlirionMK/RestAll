@@ -35,7 +35,7 @@ export function useNavigation() {
             links: [
                 { label: 'nav.home', name: 'Home' },
                 { label: 'nav.menu', name: 'PublicMenu' },
-                { label: 'nav.bookings', name: 'UserBookings' },
+                { label: 'nav.bookings', name: 'UserBookings', params: { restaurantId: 1 } },
             ]
         },
         {
@@ -56,9 +56,16 @@ export function useNavigation() {
 
     const userActions = computed(() => {
         const role = authStore.userRole;
-        const actions = [
-            { label: 'public.my_bookings', name: 'UserBookings', icon: Calendar }
-        ];
+        const actions: any[] = [];
+
+        if (!role || role === UserRole.USER || role === 'guest') {
+            actions.push({
+                label: 'public.my_bookings',
+                name: 'UserBookings',
+                params: { restaurantId: 1 },
+                icon: Calendar
+            });
+        }
 
         if (role === UserRole.ADMIN) {
             actions.unshift({ label: 'public.dashboard', name: 'AdminDashboard', icon: LayoutDashboard });
