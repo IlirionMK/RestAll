@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/auth_service.dart';
+import 'screens/waiter/tables_screen.dart';
 
 void main() => runApp(const RestAllApp());
 
@@ -10,7 +11,22 @@ class RestAllApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'RestAll',
-      theme: ThemeData(primarySwatch: Colors.deepOrange),
+      theme: ThemeData(
+        primaryColor: Colors.deepOrange,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+        useMaterial3: true, // Nowoczesny wygląd Material 3
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.grey[100],
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.deepOrange,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),          ),
+        ),
+      ),
       home: const LoginPage(),
     );
   }
@@ -32,20 +48,31 @@ class _LoginPageState extends State<LoginPage> {
   void _login() async {
     setState(() => _isLoading = true);
 
-    // Wywołanie serwisu logowania
-    final result = await _auth.login(_emailController.text, _passwordController.text);
-    bool success = result['success']; // Wyciągamy booleana z mapy
+    // 1. Wywołanie serwisu
+    final result = await _auth.login(
+        _emailController.text,
+        _passwordController.text
+    );
 
+    // 2. Zatrzymanie ładowania (Musi być przed nawigacją lub po błędzie)
     setState(() => _isLoading = false);
 
-    if (success) {
-      // Tutaj w przyszłości dodasz nawigację: Navigator.push(...)
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zalogowano pomyślnie!')),
+    // 3. Obsługa wyniku
+    if (result['success'] == true) {
+      // Sukces: Nawigacja do ekranu stolików
+      if (!mounted) return; // Dobra praktyka we Flutterze
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const TablesScreen()),
       );
     } else {
+      // Błąd: Pokazujemy SnackBar z informacją co poszło nie tak
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Błąd logowania. Sprawdź dane.')),
+        SnackBar(
+          content: Text('Błąd: ${result['error'] ?? 'Nieznany błąd'}'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }

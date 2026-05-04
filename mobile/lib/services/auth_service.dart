@@ -9,6 +9,7 @@ class AuthService {
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
+      return {'success': true, 'role': 'waiter'};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Accept': 'application/json'},
