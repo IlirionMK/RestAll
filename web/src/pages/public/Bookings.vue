@@ -5,10 +5,10 @@
       <div class="space-y-12 animate-fade-in text-left">
         <div v-if="!isSuccess">
           <span class="inline-block py-1 px-4 rounded-full bg-restall-gold/20 text-restall-gold text-xs font-black uppercase tracking-widest mb-6">
-            {{ t('bookings.step_info', { current: currentStep, total: 2 }) }}
+            {{ t('bookings.step_info', { current: currentStep + 1 }) }}
           </span>
           <h1 class="text-5xl md:text-7xl font-black text-restall-dark dark:text-restall-light tracking-tighter leading-[0.9] uppercase">
-            {{ currentStep === 1 ? t('bookings.title') : t('bookings.choose_table') }}
+            {{ stepTitle }}
           </h1>
         </div>
         <div v-else>
@@ -20,27 +20,29 @@
           </h1>
         </div>
 
-        <div class="flex items-start space-x-6 group">
-          <div class="w-14 h-14 rounded-2xl bg-restall-green/10 flex items-center justify-center flex-shrink-0">
-            <MapPin class="w-6 h-6 text-restall-green" />
-          </div>
-          <div>
-            <h4 class="text-lg font-black text-restall-dark dark:text-restall-light uppercase tracking-tight">RestAll Premium</h4>
-            <p class="text-gray-500 font-medium">Main Avenue, 42</p>
+        <div v-if="selectedRestaurant" class="space-y-8">
+          <div class="flex items-start space-x-6 group">
+            <div class="w-14 h-14 rounded-2xl bg-restall-green/10 flex items-center justify-center flex-shrink-0">
+              <MapPin class="w-6 h-6 text-restall-green" />
+            </div>
+            <div>
+              <h4 class="text-lg font-black text-restall-dark dark:text-restall-light uppercase tracking-tight">{{ selectedRestaurant.name }}</h4>
+              <p class="text-gray-500 font-medium">{{ selectedRestaurant.address }}</p>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="bg-white dark:bg-gray-800/50 p-8 md:p-12 rounded-[3.5rem] shadow-2xl border border-gray-100 dark:border-gray-700 relative backdrop-blur-sm">
 
-        <div v-if="isSuccess" class="text-center py-10 space-y-8 relative z-10 animate-fade-in-up">
+        <div v-if="isSuccess" class="text-center py-10 space-y-8 animate-fade-in-up">
           <div class="w-24 h-24 bg-restall-green/20 rounded-full flex items-center justify-center mx-auto mb-8">
             <Check class="w-12 h-12 text-restall-green" />
           </div>
           <div class="space-y-4">
             <h2 class="text-3xl font-black text-restall-dark dark:text-restall-light uppercase tracking-tight">{{ t('bookings.reserved_title') }}</h2>
             <p class="text-gray-500 font-medium max-w-xs mx-auto text-center leading-relaxed">
-              {{ t('bookings.confirmed_text') }} <span class="text-restall-dark dark:text-restall-light font-bold">{{ date }}</span> {{ t('bookings.at') }} <span class="text-restall-dark dark:text-restall-light font-bold">{{ time }}</span>.
+              {{ t('bookings.confirmed_text') }} <span class="font-bold">{{ date }}</span> {{ t('bookings.at') }} <span class="font-bold">{{ time }}</span>.
             </p>
           </div>
           <div class="pt-8 space-y-4">
@@ -54,10 +56,41 @@
         </div>
 
         <template v-else>
-          <form v-if="currentStep === 1" @submit.prevent="goToStepTwo" class="space-y-10 relative z-10 animate-fade-in-up text-left">
+          <div v-if="currentStep === 0" class="space-y-8 animate-fade-in-up">
+            <div class="relative">
+              <Search class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                  v-model="searchQuery"
+                  type="text"
+                  :placeholder="t('bookings.search_placeholder')"
+                  class="w-full pl-14 pr-5 py-5 bg-gray-50 dark:bg-gray-900/50 border-none rounded-3xl outline-none font-bold text-lg dark:text-white"
+              >
+            </div>
+
+            <div v-if="loading" class="flex justify-center py-12">
+              <Loader2 class="w-10 h-10 animate-spin text-restall-gold" />
+            </div>
+
+            <div v-else class="space-y-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+              <div
+                  v-for="res in filteredRestaurants"
+                  :key="res.id"
+                  @click="selectRestaurant(res)"
+                  class="p-6 rounded-3xl border-2 border-transparent bg-gray-50 dark:bg-gray-900/50 hover:border-restall-green/30 cursor-pointer transition-all group text-left"
+              >
+                <h4 class="text-xl font-black text-restall-dark dark:text-restall-light uppercase group-hover:text-restall-green transition-colors">{{ res.name }}</h4>
+                <p class="text-sm text-gray-500 font-medium mt-1">{{ res.address }}</p>
+              </div>
+              <div v-if="filteredRestaurants.length === 0" class="text-center py-12 text-gray-400 font-bold uppercase text-xs">
+                {{ t('bookings.no_restaurants') }}
+              </div>
+            </div>
+          </div>
+
+          <form v-else-if="currentStep === 1" @submit.prevent="goToStepTwo" class="space-y-10 relative z-10 animate-fade-in-up text-left">
             <div class="space-y-4">
               <label class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">{{ t('bookings.guests_label') }}</label>
-              <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border border-transparent focus-within:border-restall-green/30 transition-all">
+              <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border border-transparent focus-within:border-restall-green/30">
                 <button type="button" @click="form.guests_count > 1 && form.guests_count--" class="w-14 h-14 rounded-2xl bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center active:scale-95 transition-transform"><Minus class="w-6 h-6" /></button>
                 <div class="text-center">
                   <span class="text-3xl font-black text-restall-dark dark:text-restall-light">{{ form.guests_count }}</span>
@@ -68,14 +101,14 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
-              <div class="space-y-4 text-left">
+              <div class="space-y-4">
                 <label class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">{{ t('bookings.date_label') }}</label>
                 <div class="relative">
                   <Calendar class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input v-model="date" type="date" required class="w-full pl-14 pr-5 py-5 bg-gray-50 dark:bg-gray-900/50 border-none rounded-3xl outline-none font-bold text-lg cursor-pointer dark:text-white">
                 </div>
               </div>
-              <div class="space-y-4 text-left">
+              <div class="space-y-4">
                 <label class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">{{ t('bookings.time_label') }}</label>
                 <div class="relative">
                   <Clock class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
@@ -84,9 +117,12 @@
               </div>
             </div>
 
-            <BaseButton type="submit" size="lg" class="w-full py-6 text-xl rounded-full" :disabled="loading">
-              {{ t('bookings.next_btn') }}
-            </BaseButton>
+            <div class="flex gap-4">
+              <BaseButton type="button" variant="ghost" @click="currentStep = 0" class="flex-1 rounded-full">{{ t('common.back') }}</BaseButton>
+              <BaseButton type="submit" size="lg" class="flex-[2] py-6 text-xl rounded-full">
+                {{ t('bookings.next_btn') }}
+              </BaseButton>
+            </div>
           </form>
 
           <div v-else class="space-y-8 animate-fade-in-up text-left">
@@ -100,14 +136,9 @@
             </div>
 
             <div v-else class="grid grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-              <button
-                  v-for="table in availableTables" :key="table.id"
-                  @click="table.status !== 'booked' && (form.table_id = table.id)"
-                  :disabled="table.status === 'booked'"
-                  :class="['p-6 rounded-[2rem] border-2 transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden', form.table_id === table.id ? 'border-restall-gold bg-restall-gold/5 scale-95 shadow-inner' : 'border-transparent bg-gray-50 dark:bg-gray-900/50', table.status === 'booked' ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:bg-gray-100']"
-              >
+              <button v-for="table in availableTables" :key="table.id" @click="table.status !== 'booked' && (form.table_id = table.id)" :disabled="table.status === 'booked'" :class="['p-6 rounded-[2rem] border-2 transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden', form.table_id === table.id ? 'border-restall-gold bg-restall-gold/5 scale-95' : 'border-transparent bg-gray-50 dark:bg-gray-900/50', table.status === 'booked' ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:bg-gray-100']">
                 <div v-if="table.status === 'booked'" class="absolute inset-0 flex items-center justify-center bg-black/5 backdrop-blur-[1px]">
-                  <span class="text-[9px] font-black uppercase bg-white/90 dark:bg-gray-800/90 px-2 py-1 rounded shadow-sm tracking-tighter">{{ t('bookings.table_reserved') }}</span>
+                  <span class="text-[9px] font-black uppercase bg-white/90 dark:bg-gray-800/90 px-2 py-1 rounded shadow-sm">{{ t('bookings.table_reserved') }}</span>
                 </div>
                 <span class="text-xs font-black text-gray-400 uppercase">{{ t('bookings.table_label_short') }}</span>
                 <span class="text-2xl font-black text-restall-dark dark:text-restall-light">{{ table.number }}</span>
@@ -116,12 +147,9 @@
             </div>
 
             <div class="flex gap-4">
-              <BaseButton variant="ghost" @click="currentStep = 1" class="flex-1 rounded-full" :disabled="loading">
-                {{ t('common.back') }}
-              </BaseButton>
+              <BaseButton variant="ghost" @click="currentStep = 1" class="flex-1 rounded-full" :disabled="loading">{{ t('common.back') }}</BaseButton>
               <BaseButton class="flex-[2] rounded-full shadow-xl" :disabled="!form.table_id || loading" @click="handleBooking">
-                <Loader2 v-if="loading" class="w-6 h-6 animate-spin mr-3" />
-                {{ t('bookings.confirm_btn') }}
+                <Loader2 v-if="loading" class="w-6 h-6 animate-spin mr-3" />{{ t('bookings.confirm_btn') }}
               </BaseButton>
             </div>
           </div>
@@ -132,12 +160,13 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { reactive, ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
-import { Calendar, Clock, Plus, Minus, MapPin, Loader2, Check } from 'lucide-vue-next';
+import { Calendar, Clock, Plus, Minus, MapPin, Loader2, Check, Search } from 'lucide-vue-next';
 import { TablesService } from '@/api/tables.service';
 import { ReservationsService } from '@/api/reservations.service';
+import { RestaurantsService } from '@/api/restaurants.service';
 import BaseButton from '@/components/UI/BaseButton.vue';
 
 const { t } = useI18n();
@@ -147,28 +176,74 @@ const loading = ref(false);
 const tablesLoading = ref(false);
 const isSuccess = ref(false);
 const bookingError = ref<string | null>(null);
-const currentStep = ref(1);
-const restaurantId = Number(route.params.restaurantId);
+
+const currentStep = ref(0);
+const restaurants = ref<any[]>([]);
+const searchQuery = ref('');
+const selectedRestaurant = ref<any>(null);
 
 const date = ref(new Date().toISOString().split('T')[0]);
 const time = ref('19:00');
-
 const form = reactive({ guests_count: 2, table_id: null as number | null });
 const availableTables = ref<any[]>([]);
 
+const stepTitle = computed(() => {
+  if (currentStep.value === 0) return t('bookings.select_restaurant');
+  if (currentStep.value === 1) return t('bookings.title');
+  return t('bookings.choose_table');
+});
+
+const filteredRestaurants = computed(() => {
+  const query = searchQuery.value.toLowerCase();
+  return restaurants.value.filter(r =>
+      r.name.toLowerCase().includes(query) || (r.address && r.address.toLowerCase().includes(query))
+  );
+});
+
+const fetchRestaurants = async () => {
+  loading.value = true;
+  try {
+    const response = await RestaurantsService.index();
+    restaurants.value = response.data || response;
+
+    const preId = route.params.restaurantId;
+    if (preId) {
+      const found = restaurants.value.find(r => r.id == preId);
+      if (found) selectRestaurant(found);
+    }
+  } catch (e) {
+    console.error(e);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const selectRestaurant = (res: any) => {
+  selectedRestaurant.value = res;
+  currentStep.value = 1;
+};
+
 const fetchTables = async () => {
+  if (!selectedRestaurant.value) return;
   tablesLoading.value = true;
   try {
     const response = await TablesService.getAll({
-      restaurant_id: restaurantId,
+      restaurant_id: selectedRestaurant.value.id,
       reservation_time: `${date.value} ${time.value}:00`
     });
     const tablesData = response.data || response;
-    availableTables.value = tablesData.filter((t: any) => t.capacity >= form.guests_count);
-  } catch (e) { console.error(e); } finally { tablesLoading.value = false; }
+    availableTables.value = Array.isArray(tablesData) ? tablesData.filter((t: any) => t.capacity >= form.guests_count) : [];
+  } catch (e) {
+    console.error(e);
+  } finally {
+    tablesLoading.value = false;
+  }
 };
 
-const goToStepTwo = async () => { currentStep.value = 2; await fetchTables(); };
+const goToStepTwo = async () => {
+  currentStep.value = 2;
+  await fetchTables();
+};
 
 const handleBooking = async () => {
   loading.value = true;
@@ -187,8 +262,12 @@ const handleBooking = async () => {
     } else {
       bookingError.value = t('errors.booking_failed');
     }
-  } finally { loading.value = false; }
+  } finally {
+    loading.value = false;
+  }
 };
+
+onMounted(fetchRestaurants);
 </script>
 
 <style scoped>

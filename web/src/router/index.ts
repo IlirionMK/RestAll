@@ -27,7 +27,7 @@ const routes: RouteRecordRaw[] = [
                 meta: { guestOnly: true }
             },
             {
-                path: 'restaurant/:restaurantId/book',
+                path: 'book/:restaurantId?',
                 name: 'BookingForm',
                 component: () => import('../pages/public/Bookings.vue'),
                 meta: { requiresAuth: true }
@@ -83,31 +83,19 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
     const authStore = useAuthStore();
-
     if (!isInitialized) {
         try {
             await authStore.fetchUser();
         } catch (error) {
-            // Silently handle init errors
         } finally {
             isInitialized = true;
         }
     }
-
     const isAuthenticated = authStore.isAuth;
     const userRole = authStore.userRole;
-
-    if (to.meta.requiresAuth && !isAuthenticated) {
-        return { name: 'Login' };
-    }
-
-    if (to.meta.guestOnly && isAuthenticated) {
-        return { name: 'Home' };
-    }
-
-    if (to.meta.role && to.meta.role !== userRole) {
-        return { name: 'Home' };
-    }
+    if (to.meta.requiresAuth && !isAuthenticated) return { name: 'Login' };
+    if (to.meta.guestOnly && isAuthenticated) return { name: 'Home' };
+    if (to.meta.role && to.meta.role !== userRole) return { name: 'Home' };
 });
 
 export default router;

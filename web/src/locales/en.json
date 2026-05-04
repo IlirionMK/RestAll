@@ -1,6 +1,7 @@
 {
   "nav": {
     "home": "Home",
+    "restaurants": "Restaurants",
     "menu": "Menu",
     "reviews": "Reviews",
     "bookings": "Bookings",
@@ -8,7 +9,11 @@
     "privacy": "Privacy",
     "terms": "Terms"
   },
+  "common": {
+    "back": "Back"
+  },
   "public": {
+    "hero_badge": "Premium Dining Experience",
     "hero_title": "A New Standard of Dining",
     "hero_subtitle": "Experience culinary excellence with our modern ecosystem.",
     "book_btn": "Reserve a Table",
@@ -23,12 +28,48 @@
   },
   "bookings": {
     "title": "Book a Table",
+    "choose_table": "Choose Table",
+    "select_restaurant": "Select Restaurant",
+    "search_placeholder": "Search by name or address...",
+    "search_restaurant_placeholder": "Search by restaurant...",
+    "no_restaurants": "No restaurants found",
+    "step_info": "Step {current} of 3",
+    "status_success": "Success",
+    "see_you": "See you soon!",
+    "reserved_title": "Table Reserved!",
+    "confirmed_text": "Confirmed for",
+    "at": "at",
+    "view_my_btn": "View My Bookings",
+    "guests_label": "Number of Guests",
+    "people": "People",
+    "date_label": "Pick Date",
+    "time_label": "Pick Time",
+    "next_btn": "Next",
+    "loading_tables": "Checking tables...",
+    "table_reserved": "Reserved",
+    "table_label": "Table Details",
+    "table_label_short": "Table",
+    "spots": "spots",
+    "confirm_btn": "Confirm Booking",
+    "my_title": "My",
+    "my_title_alt": "Bookings",
+    "dashboard_subtitle": "Manage your reservation history",
+    "new_btn": "New Reservation",
+    "empty_title": "No bookings found",
+    "empty_link": "Book your first table",
+    "cancel_btn": "Cancel Reservation",
+    "archived_label": "Archived",
+    "location_placeholder": "Central District",
+    "confirm_cancel": "Are you sure you want to cancel this reservation?",
     "subtitle": "Secure your spot at RestAll",
-    "guests": "Number of Guests",
-    "date": "Date",
-    "time": "Time",
-    "submit": "Confirm Reservation",
-    "people": "People"
+    "filter_all_status": "All Statuses",
+    "filter_date": "Filter by date",
+    "sort_newest": "Newest first",
+    "sort_oldest": "Oldest first",
+    "status_pending": "Pending",
+    "status_confirmed": "Confirmed",
+    "status_cancelled": "Cancelled",
+    "status_completed": "Completed"
   },
   "auth": {
     "to_login": "Log In",
@@ -65,6 +106,10 @@
     "cart": "Your Order",
     "cart_empty": "Your cart is currently empty.",
     "checkout": "Place Order"
+  },
+  "errors": {
+    "table_occupied": "Table already occupied.",
+    "booking_failed": "Booking failed. Please try again."
   },
   "reviews": {
     "write": "Write a Review"

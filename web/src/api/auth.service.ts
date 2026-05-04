@@ -7,12 +7,14 @@ export const AuthService = {
 
     async login(credentials: any): Promise<any> {
         await this.getCsrfCookie();
-        return api.post('/api/auth/login', credentials);
+        const response = await api.post('/api/auth/login', credentials);
+        return response.data;
     },
 
-    async register(data: any): Promise<any> {
+    async register(payload: any): Promise<any> {
         await this.getCsrfCookie();
-        return api.post('/api/auth/register', data);
+        const response = await api.post('/api/auth/register', payload);
+        return response.data;
     },
 
     async logout(): Promise<void> {
@@ -20,7 +22,7 @@ export const AuthService = {
     },
 
     async getCurrentUser(): Promise<any> {
-        const { data } = await api.get('/api/users/me');
-        return data;
+        const response = await api.get('/api/users/me');
+        return response.data;
     }
 };

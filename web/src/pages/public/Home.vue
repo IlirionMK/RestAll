@@ -24,7 +24,7 @@
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-6 animate-fade-in-up">
           <BaseButton
-              :to="{ name: 'BookingForm', params: { restaurantId: 1 } }"
+              :to="{ name: 'BookingForm' }"
               size="lg"
               class="w-full sm:w-auto px-10 rounded-full py-5 text-lg no-underline shadow-xl shadow-restall-gold/20"
           >

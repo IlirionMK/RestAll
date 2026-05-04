@@ -5,6 +5,7 @@ import { UserRole } from '@/types/auth.types';
 import {
     LayoutDashboard,
     Calendar,
+    Search,
     Instagram,
     Facebook,
     Twitter
@@ -25,6 +26,7 @@ export function useNavigation() {
 
     const publicLinks = [
         { name: 'Home', label: 'nav.home' },
+        { name: 'BookingForm', label: 'nav.restaurants' },
         { name: 'PublicMenu', label: 'nav.menu' },
         { name: 'Reviews', label: 'nav.reviews' },
     ];
@@ -34,8 +36,9 @@ export function useNavigation() {
             title: 'footer.explore',
             links: [
                 { label: 'nav.home', name: 'Home' },
+                { label: 'nav.restaurants', name: 'BookingForm' },
                 { label: 'nav.menu', name: 'PublicMenu' },
-                { label: 'nav.bookings', name: 'UserBookings', params: { restaurantId: 1 } },
+                { label: 'nav.bookings', name: 'UserBookings' },
             ]
         },
         {
@@ -62,7 +65,6 @@ export function useNavigation() {
             actions.push({
                 label: 'public.my_bookings',
                 name: 'UserBookings',
-                params: { restaurantId: 1 },
                 icon: Calendar
             });
         }

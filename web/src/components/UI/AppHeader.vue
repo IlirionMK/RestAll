@@ -14,7 +14,7 @@
           <router-link
               v-for="link in publicLinks"
               :key="link.name"
-              :to="{ name: link.name, params: link.params || {} }"
+              :to="{ name: link.name }"
               class="hover:text-restall-gold transition-colors"
               active-class="text-restall-green dark:text-restall-gold"
           >
@@ -59,7 +59,7 @@
               <button class="flex items-center space-x-3 p-1.5 pl-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all group-hover:border-restall-green/40">
                 <div class="flex flex-col items-end hidden sm:block">
                   <span class="text-[10px] uppercase font-black text-gray-400 leading-none mb-1">
-                    {{ t(`role.${authStore.userRole}`) }}
+                    {{ t(`role.${authStore.userRole || 'guest'}`) }}
                   </span>
                   <p class="text-xs font-black text-restall-dark dark:text-restall-light leading-none">
                     {{ authStore.user?.name }}
@@ -78,7 +78,7 @@
                 <router-link
                     v-for="action in userActions"
                     :key="action.name"
-                    :to="{ name: action.name, params: action.params || {} }"
+                    :to="{ name: action.name }"
                     class="flex items-center px-4 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-restall-green transition-colors"
                 >
                   <component :is="action.icon" class="w-4 h-4 mr-3 opacity-70" />

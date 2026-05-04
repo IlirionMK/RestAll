@@ -10,7 +10,8 @@ use App\Http\Controllers\Api\{
     UserController,
     ReservationController,
     OrderController,
-    KitchenController
+    KitchenController,
+    RestaurantController
 };
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController;
@@ -24,6 +25,9 @@ Route::prefix('auth')->group(function () {
     Route::post('/reset-password', [NewPasswordController::class, 'store']);
     Route::get('/google', [AuthController::class, 'googleRedirect']);
 });
+
+Route::get('/restaurants', [RestaurantController::class, 'index']);
+Route::get('/restaurants/{restaurant}', [RestaurantController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
 

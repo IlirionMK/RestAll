@@ -18,7 +18,7 @@
           </h4>
           <ul class="space-y-4">
             <li v-for="link in section.links" :key="link.name">
-              <router-link :to="{ name: link.name, params: link.params || {} }" class="text-gray-500 dark:text-gray-400 hover:text-restall-gold font-medium transition-colors">
+              <router-link :to="{ name: link.name }" class="text-gray-500 dark:text-gray-400 hover:text-restall-gold font-medium transition-colors">
                 {{ t(link.label) }}
               </router-link>
             </li>

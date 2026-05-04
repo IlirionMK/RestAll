@@ -1,6 +1,7 @@
 {
   "nav": {
-    "home": "Główna",
+    "home": "Strona główna",
+    "restaurants": "Restauracje",
     "menu": "Menu",
     "reviews": "Opinie",
     "bookings": "Rezerwacje",
@@ -8,7 +9,11 @@
     "privacy": "Prywatność",
     "terms": "Regulamin"
   },
+  "common": {
+    "back": "Wróć"
+  },
   "public": {
+    "hero_badge": "Wyjątkowe Doświadczenie Kulinarne",
     "hero_title": "Nowy Standard Degustacji",
     "hero_subtitle": "Poznaj kulinarną doskonałość dzięki naszemu nowoczesnemu ekosystemowi.",
     "book_btn": "Zarezerwuj stolik",
@@ -23,12 +28,48 @@
   },
   "bookings": {
     "title": "Zarezerwuj stolik",
+    "choose_table": "Wybierz stolik",
+    "select_restaurant": "Wybierz restaurację",
+    "search_placeholder": "Szukaj po nazwie lub adresie...",
+    "search_restaurant_placeholder": "Szukaj restauracji...",
+    "no_restaurants": "Nie znaleziono restauracji",
+    "step_info": "Krok {current} z 3",
+    "status_success": "Sukces",
+    "see_you": "Do zobaczenia!",
+    "reserved_title": "Stolik zarezerwowany!",
+    "confirmed_text": "Potwierdzono na",
+    "at": "o godzinie",
+    "view_my_btn": "Pokaż moje rezerwacje",
+    "guests_label": "Liczba gości",
+    "people": "osób",
+    "date_label": "Data",
+    "time_label": "Godzina",
+    "next_btn": "Dalej",
+    "loading_tables": "Sprawdzanie dostępności...",
+    "table_reserved": "Zarezerwowany",
+    "table_label": "Szczegóły stolika",
+    "table_label_short": "Stolik",
+    "spots": "miejsca",
+    "confirm_btn": "Potwierdź rezerwację",
+    "my_title": "Moje",
+    "my_title_alt": "Rezerwacje",
+    "dashboard_subtitle": "Zarządzaj swoją historią rezerwacji",
+    "new_btn": "Nowa rezerwacja",
+    "empty_title": "Brak aktywnych rezerwacji",
+    "empty_link": "Zarezerwuj swój pierwszy stolik",
+    "cancel_btn": "Anuluj rezerwację",
+    "archived_label": "Zarchiwizowane",
+    "location_placeholder": "Centrum Miasta",
+    "confirm_cancel": "Czy na pewno chcesz anulować tę rezerwację?",
     "subtitle": "Zapewnij sobie miejsce w RestAll",
-    "guests": "Liczba gości",
-    "date": "Data",
-    "time": "Godzina",
-    "submit": "Potwierdź rezerwację",
-    "people": "Osoby"
+    "filter_all_status": "Wszystkie statusy",
+    "filter_date": "Filtruj po dacie",
+    "sort_newest": "Najnowsze",
+    "sort_oldest": "Najstarsze",
+    "status_pending": "Oczekujące",
+    "status_confirmed": "Potwierdzone",
+    "status_cancelled": "Anulowane",
+    "status_completed": "Zakończone"
   },
   "auth": {
     "to_login": "Zaloguj się",
@@ -65,6 +106,10 @@
     "cart": "Twoje zamówienie",
     "cart_empty": "Twój koszyk jest pusty.",
     "checkout": "Złóż zamówienie"
+  },
+  "errors": {
+    "table_occupied": "Ten stolik jest уже zajęty в wybranym terminie.",
+    "booking_failed": "Błąd rezerwacji. Spróbuj ponownie później."
   },
   "reviews": {
     "write": "Napisz opinię"
