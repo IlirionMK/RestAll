@@ -4,6 +4,7 @@ import { OrdersService } from './orders.service';
 import { ReservationsService } from './reservations.service';
 import { TablesService } from './tables.service';
 import { RestaurantsService} from "@/api/restaurants.service.ts";
+import { MenuService} from "@/api/menu.service.ts";
 
 export const API = {
     auth: AuthService,
@@ -11,5 +12,6 @@ export const API = {
     orders: OrdersService,
     reservations: ReservationsService,
     tables: TablesService,
-    restaurants: RestaurantsService
+    restaurants: RestaurantsService,
+    menu: MenuService
 };

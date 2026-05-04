@@ -33,26 +33,37 @@ const routes: RouteRecordRaw[] = [
                 meta: { requiresAuth: true }
             },
             {
+                path: 'menu/:restaurantId?',
+                name: 'PublicMenu',
+                component: () => import('../pages/public/Order.vue'),
+                meta: { requiresAuth: true }
+            },
+            {
                 path: 'my-bookings',
                 name: 'UserBookings',
                 component: () => import('../pages/public/UserBookings.vue'),
                 meta: { requiresAuth: true }
             },
             {
-                path: 'menu',
-                name: 'PublicMenu',
-                component: () => import('../pages/public/Order.vue')
+                path: 'reviews',
+                name: 'Reviews',
+                component: () => import('../pages/public/Reviews.vue')
             },
             {
-                path: 'order/:tableId',
-                name: 'Order',
-                component: () => import('../pages/public/Order.vue'),
-                meta: { requiresAuth: true }
+                path: 'contact',
+                name: 'Contact',
+                component: () => import('../pages/public/Home.vue')
             },
-            { path: 'reviews', name: 'Reviews', component: () => import('../pages/public/Reviews.vue') },
-            { path: 'contact', name: 'Contact', component: () => import('../pages/public/Home.vue') },
-            { path: 'privacy', name: 'Privacy', component: () => import('../pages/public/Home.vue') },
-            { path: 'terms', name: 'Terms', component: () => import('../pages/public/Home.vue') },
+            {
+                path: 'privacy',
+                name: 'Privacy',
+                component: () => import('../pages/public/Home.vue')
+            },
+            {
+                path: 'terms',
+                name: 'Terms',
+                component: () => import('../pages/public/Home.vue')
+            },
         ]
     },
     {
@@ -83,6 +94,7 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
     const authStore = useAuthStore();
+
     if (!isInitialized) {
         try {
             await authStore.fetchUser();
@@ -91,11 +103,21 @@ router.beforeEach(async (to) => {
             isInitialized = true;
         }
     }
+
     const isAuthenticated = authStore.isAuth;
     const userRole = authStore.userRole;
-    if (to.meta.requiresAuth && !isAuthenticated) return { name: 'Login' };
-    if (to.meta.guestOnly && isAuthenticated) return { name: 'Home' };
-    if (to.meta.role && to.meta.role !== userRole) return { name: 'Home' };
+
+    if (to.meta.requiresAuth && !isAuthenticated) {
+        return { name: 'Login' };
+    }
+
+    if (to.meta.guestOnly && isAuthenticated) {
+        return { name: 'Home' };
+    }
+
+    if (to.meta.role && to.meta.role !== userRole) {
+        return { name: 'Home' };
+    }
 });
 
 export default router;

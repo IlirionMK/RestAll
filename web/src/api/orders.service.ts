@@ -1,33 +1,31 @@
 import api from './axios';
 
 export const OrdersService = {
-    async index() {
-        const { data } = await api.get('/api/orders');
-        return data;
+    getContext() {
+        return api.get('/api/orders/context');
     },
 
-    async store(orderData: any) {
-        const { data } = await api.post('/api/orders', orderData);
-        return data;
+    index() {
+        return api.get('/api/orders');
     },
 
-    async show(orderId: number | string) {
-        const { data } = await api.get(`/api/orders/${orderId}`);
-        return data;
+    store(data: any) {
+        return api.post('/api/orders', data);
     },
 
-    async addItems(orderId: number | string, items: any[]) {
-        const { data } = await api.post(`/api/orders/${orderId}/items`, { items });
-        return data;
+    show(id: number | string) {
+        return api.get(`/api/orders/${id}`);
     },
 
-    async removeItem(orderItemId: number | string) {
-        const { data } = await api.delete(`/api/orders/items/${orderItemId}`);
-        return data;
+    addItems(id: number | string, items: any[]) {
+        return api.post(`/api/orders/${id}/items`, { items });
     },
 
-    async pay(orderId: number | string) {
-        const { data } = await api.patch(`/api/orders/${orderId}/pay`);
-        return data;
+    removeItem(orderItemId: number) {
+        return api.delete(`/api/orders/items/${orderItemId}`);
+    },
+
+    pay(id: number | string) {
+        return api.patch(`/api/orders/${id}/pay`);
     }
 };
