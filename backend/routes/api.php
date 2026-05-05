@@ -17,12 +17,25 @@ use App\Http\Controllers\Api\{
 Route::prefix('auth')->group(function () {
     Route::post('/register', [\Laravel\Fortify\Http\Controllers\RegisteredUserController::class, 'store']);
     Route::post('/login', [\Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::class, 'store'])->name('login');
+    Route::post('/2fa/challenge', [\Laravel\Fortify\Http\Controllers\TwoFactorAuthenticatedSessionController::class, 'store']);
+    Route::post('/forgot-password', [\Laravel\Fortify\Http\Controllers\PasswordResetLinkController::class, 'store']);
+    Route::post('/reset-password', [\Laravel\Fortify\Http\Controllers\NewPasswordController::class, 'store']);
 });
 
 Route::get('/restaurants', [RestaurantController::class, 'index']);
 Route::get('/restaurants/{restaurant}', [RestaurantController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/auth/logout', [\Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::class, 'destroy']);
+
+    Route::prefix('auth/2fa')->group(function () {
+        Route::post('/enable', [\Laravel\Fortify\Http\Controllers\TwoFactorAuthenticationController::class, 'store']);
+        Route::delete('/disable', [\Laravel\Fortify\Http\Controllers\TwoFactorAuthenticationController::class, 'destroy']);
+        Route::get('/qr-code', [\Laravel\Fortify\Http\Controllers\TwoFactorQrCodeController::class, 'show']);
+        Route::get('/recovery-codes', [\Laravel\Fortify\Http\Controllers\RecoveryCodeController::class, 'index']);
+        Route::post('/confirm', [\Laravel\Fortify\Http\Controllers\ConfirmedTwoFactorAuthenticationController::class, 'store']);
+    });
+
     Route::prefix('orders')->group(function () {
         Route::get('/context', [OrderController::class, 'getCurrentContext']);
         Route::get('/', [OrderController::class, 'index']);

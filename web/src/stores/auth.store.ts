@@ -4,6 +4,7 @@ import { API } from '@/api';
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<any>(null);
+    const requires2FA = ref(false);
     const activeBooking = ref<{ id: number; table_id: number; status: string } | null>(null);
 
     const isAuth = computed(() => !!user.value);
@@ -23,10 +24,28 @@ export const useAuthStore = defineStore('auth', () => {
 
     const login = async (credentials: any) => {
         try {
-            await API.auth.login(credentials);
+            const data = await API.auth.login(credentials);
+
+            if (data?.two_factor) {
+                requires2FA.value = true;
+                return;
+            }
+
+            requires2FA.value = false;
             await fetchUser();
         } catch (error) {
             user.value = null;
+            requires2FA.value = false;
+            throw error;
+        }
+    };
+
+    const verify2FA = async (code: string) => {
+        try {
+            await API.auth.verify2FA({ code });
+            requires2FA.value = false;
+            await fetchUser();
+        } catch (error) {
             throw error;
         }
     };
@@ -45,17 +64,20 @@ export const useAuthStore = defineStore('auth', () => {
         } finally {
             user.value = null;
             activeBooking.value = null;
+            requires2FA.value = false;
         }
     };
 
     return {
         user,
+        requires2FA,
         activeBooking,
         isAuth,
         userRole,
         canOrder,
         fetchUser,
         login,
+        verify2FA,
         register,
         logout
     };

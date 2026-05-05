@@ -85,7 +85,31 @@
     "submit_register": "Zarejestruj się",
     "no_account": "Nie masz konta?",
     "have_account": "Masz już konto?",
-    "logged_in_as": "Zalogowano jako"
+    "logged_in_as": "Zalogowano jako",
+    "registration_success": "Konto zostało pomyślnie utworzone. Zaloguj się.",
+    "error_credentials": "Nieprawidłowe dane logowania lub niezweryfikowany e-mail.",
+    "error_2fa": "Nieprawidłowy lub wygasły kod 2FA.",
+    "2fa_title": "Weryfikacja dwuetapowa",
+    "2fa_code": "Wprowadź 6-cyfrowy kod",
+    "verify": "Zweryfikuj kod",
+    "back_to_login": "Powrót do logowania"
+  },
+  "security": {
+    "2fa_title": "Uwierzytelnianie dwuetapowe (2FA)",
+    "2fa_desc": "Dodaj dodatkową warstwę zabezpieczeń do swojego konta.",
+    "enable_2fa": "Włącz 2FA",
+    "step1_title": "Krok 1: Zeskanuj kod QR",
+    "step1_desc": "Użyj aplikacji uwierzytelniającej (np. Google Authenticator lub Authy), aby zeskanować ten kod.",
+    "step2_title": "Krok 2: Potwierdź kod",
+    "app_code": "Kod z aplikacji",
+    "confirm": "Potwierdź",
+    "cancel": "Anuluj",
+    "2fa_enabled_badge": "Uwierzytelnianie dwuetapowe jest włączone",
+    "recovery_codes_title": "Kody odzyskiwania",
+    "recovery_codes_desc": "Przechowuj te kody w bezpiecznym miejscu. Będą potrzebne, jeśli stracisz dostęp do telefonu. Każdy kod może być użyty tylko raz.",
+    "disable_2fa": "Wyłącz 2FA",
+    "invalid_code": "Nieprawidłowy kod. Spróbuj ponownie.",
+    "disable_confirm": "Czy na pewno chcesz wyłączyć 2FA? Zmniejszy to bezpieczeństwo Twojego konta."
   },
   "role": {
     "admin": "Administrator",
@@ -108,7 +132,7 @@
     "checkout": "Złóż zamówienie"
   },
   "errors": {
-    "table_occupied": "Ten stolik jest уже zajęty в wybranym terminie.",
+    "table_occupied": "Ten stolik jest już zajęty w wybranym terminie.",
     "booking_failed": "Błąd rezerwacji. Spróbuj ponownie później."
   },
   "reviews": {

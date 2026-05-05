@@ -85,7 +85,31 @@
     "submit_register": "Sign Up",
     "no_account": "Don't have an account?",
     "have_account": "Already have an account?",
-    "logged_in_as": "Logged in as"
+    "logged_in_as": "Logged in as",
+    "registration_success": "Account created successfully. Please log in.",
+    "error_credentials": "Invalid credentials or unverified email.",
+    "error_2fa": "Invalid or expired 2FA code.",
+    "2fa_title": "Two-Factor Verification",
+    "2fa_code": "Enter 6-digit Code",
+    "verify": "Verify Code",
+    "back_to_login": "Back to login"
+  },
+  "security": {
+    "2fa_title": "Two-Factor Authentication (2FA)",
+    "2fa_desc": "Add an extra layer of security to your account.",
+    "enable_2fa": "Enable 2FA",
+    "step1_title": "Step 1: Scan QR Code",
+    "step1_desc": "Use an authenticator app (e.g., Google Authenticator or Authy) to scan this code.",
+    "step2_title": "Step 2: Confirm Code",
+    "app_code": "Authenticator Code",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "2fa_enabled_badge": "Two-Factor Authentication is enabled",
+    "recovery_codes_title": "Recovery Codes",
+    "recovery_codes_desc": "Store these codes in a secure place. You will need them if you lose access to your phone. Each code can only be used once.",
+    "disable_2fa": "Disable 2FA",
+    "invalid_code": "Invalid code. Please try again.",
+    "disable_confirm": "Are you sure you want to disable 2FA? This will reduce your account security."
   },
   "role": {
     "admin": "Administrator",
