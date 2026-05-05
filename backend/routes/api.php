@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\{
     AuditLogController,
     AuthController,
+    GoogleAuthController,
     MenuItemController,
     MenuCategoryController,
     TableController,
@@ -20,6 +21,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/2fa/challenge', [\Laravel\Fortify\Http\Controllers\TwoFactorAuthenticatedSessionController::class, 'store']);
     Route::post('/forgot-password', [\Laravel\Fortify\Http\Controllers\PasswordResetLinkController::class, 'store']);
     Route::post('/reset-password', [\Laravel\Fortify\Http\Controllers\NewPasswordController::class, 'store']);
+
+    // Google OAuth Routes
+    Route::get('/google/redirect', [GoogleAuthController::class, 'redirectToGoogle']);
+    Route::get('/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
 });
 
 Route::get('/restaurants', [RestaurantController::class, 'index']);
