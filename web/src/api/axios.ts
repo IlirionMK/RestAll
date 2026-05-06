@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000',
+    baseURL: 'http://localhost:8000',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -20,7 +20,7 @@ api.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                await axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie', {
+                await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
                     withCredentials: true
                 });
 

@@ -22,6 +22,10 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
+    const loginWithGoogle = () => {
+        window.location.href = 'http://localhost:8000/api/auth/google/redirect';
+    };
+
     const login = async (credentials: any) => {
         try {
             const data = await API.auth.login(credentials);
@@ -77,6 +81,7 @@ export const useAuthStore = defineStore('auth', () => {
         canOrder,
         fetchUser,
         login,
+        loginWithGoogle,
         verify2FA,
         register,
         logout

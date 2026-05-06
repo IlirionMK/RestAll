@@ -22,9 +22,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/forgot-password', [\Laravel\Fortify\Http\Controllers\PasswordResetLinkController::class, 'store']);
     Route::post('/reset-password', [\Laravel\Fortify\Http\Controllers\NewPasswordController::class, 'store']);
 
-    // Google OAuth Routes
-    Route::get('/google/redirect', [GoogleAuthController::class, 'redirectToGoogle']);
-    Route::get('/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+    Route::middleware('web')->group(function () {
+        Route::get('/google/redirect', [GoogleAuthController::class, 'redirectToGoogle']);
+        Route::get('/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+    });
 });
 
 Route::get('/restaurants', [RestaurantController::class, 'index']);
