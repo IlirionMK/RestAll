@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Reservation;
@@ -9,12 +11,16 @@ class ReservationPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'waiter']);
+        return true;
     }
 
     public function view(User $user, Reservation $reservation): bool
     {
-        return $user->id === $reservation->user_id || in_array($user->role, ['admin', 'waiter']);
+        if (in_array($user->role, ['admin', 'waiter'])) {
+            return true;
+        }
+
+        return $user->id === $reservation->user_id;
     }
 
     public function create(User $user): bool
@@ -22,8 +28,21 @@ class ReservationPolicy
         return true;
     }
 
+    public function update(User $user, Reservation $reservation): bool
+    {
+        if (in_array($user->role, ['admin', 'waiter'])) {
+            return true;
+        }
+
+        return $user->id === $reservation->user_id && $reservation->status->value === 'pending';
+    }
+
     public function delete(User $user, Reservation $reservation): bool
     {
-        return $user->id === $reservation->user_id || $user->role === 'admin';
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        return $user->id === $reservation->user_id && $reservation->status->value === 'pending';
     }
 }

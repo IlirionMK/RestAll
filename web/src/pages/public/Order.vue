@@ -14,14 +14,17 @@
       <div class="space-y-4">
         <button
             @click="handleModeSelection('dine_in')"
-            :disabled="!context?.active_reservation"
+            :disabled="!orderContext?.has_active_reservation"
             :class="['w-full p-8 rounded-[2.5rem] border-2 transition-all flex items-center justify-between',
-            context?.active_reservation ? 'bg-white dark:bg-gray-800 border-transparent hover:border-restall-green' : 'opacity-40 grayscale cursor-not-allowed bg-gray-100 dark:bg-gray-900 border-transparent']"
+            orderContext?.has_active_reservation ? 'bg-white dark:bg-gray-800 border-transparent hover:border-restall-green' : 'opacity-40 grayscale cursor-not-allowed bg-gray-100 dark:bg-gray-900 border-transparent']"
         >
           <div class="text-left">
             <span class="block text-2xl font-black uppercase dark:text-white">{{ t('order.type.dine_in') }}</span>
-            <span v-if="context?.active_reservation" class="text-restall-green text-[10px] font-black uppercase tracking-widest">
-              {{ context.active_reservation.restaurant.name }} • Table {{ context.active_reservation.table.number }}
+            <span v-if="orderContext?.has_active_reservation" class="text-restall-green text-[10px] font-black uppercase tracking-widest">
+              {{ orderContext.context?.restaurant_name }} • Table {{ orderContext.context?.table_number }}
+            </span>
+            <span v-else class="text-gray-400 text-[10px] font-black uppercase tracking-widest">
+              No active reservation found
             </span>
           </div>
           <Utensils class="w-10 h-10 text-restall-green" />
@@ -67,7 +70,7 @@
             <div>
               <h2 class="text-lg font-black dark:text-white uppercase leading-none">{{ selectedRestaurant?.name }}</h2>
               <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                {{ orderType === 'dine_in' ? `Table ${context?.active_reservation?.table?.number}` : 'Take Away' }}
+                {{ orderType === 'dine_in' ? `Table ${orderContext?.context?.table_number}` : 'Take Away' }}
               </span>
             </div>
           </div>
@@ -116,30 +119,49 @@ import { ref, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { Utensils, ShoppingBag, Loader2, Plus } from 'lucide-vue-next';
-import { OrdersService } from '@/api/orders.service';
+import { OrdersService, type OrderContext } from '@/api/orders.service';
 import { MenuService } from '@/api/menu.service';
 import { RestaurantsService } from '@/api/restaurants.service';
 import BaseButton from '@/components/UI/BaseButton.vue';
+
+interface Restaurant {
+  id: number;
+  name: string;
+  address?: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface MenuItem {
+  id: number;
+  name: string;
+  description: string;
+  price: string | number;
+  image_url: string;
+}
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
-const loading = ref(true);
+const loading = ref<boolean>(true);
 const currentStep = ref<'mode_selection' | 'restaurant_selection' | 'menu'>('mode_selection');
-const context = ref<any>(null);
+const orderContext = ref<OrderContext | null>(null);
 const orderType = ref<'dine_in' | 'take_away' | null>(null);
 
-const restaurants = ref<any[]>([]);
-const selectedRestaurant = ref<any>(null);
-const categories = ref<any[]>([]);
-const menuItems = ref<any[]>([]);
+const restaurants = ref<Restaurant[]>([]);
+const selectedRestaurant = ref<Restaurant | null>(null);
+const categories = ref<Category[]>([]);
+const menuItems = ref<MenuItem[]>([]);
 const activeCategory = ref<number | null>(null);
 
-const fetchInitialData = async () => {
+const fetchInitialData = async (): Promise<void> => {
   try {
-    const contextRes = await OrdersService.getContext();
-    context.value = contextRes.data || contextRes;
+    const response = await OrdersService.getContext();
+    orderContext.value = response.data;
 
     if (route.params.restaurantId) {
       const resData = await RestaurantsService.show(route.params.restaurantId as string);
@@ -152,10 +174,14 @@ const fetchInitialData = async () => {
   }
 };
 
-const handleModeSelection = async (mode: 'dine_in' | 'take_away') => {
+const handleModeSelection = async (mode: 'dine_in' | 'take_away'): Promise<void> => {
   orderType.value = mode;
-  if (mode === 'dine_in') {
-    selectedRestaurant.value = context.value.active_reservation.restaurant;
+
+  if (mode === 'dine_in' && orderContext.value?.has_active_reservation) {
+    selectedRestaurant.value = {
+      id: orderContext.value.context!.restaurant_id,
+      name: orderContext.value.context!.restaurant_name
+    };
     await loadMenu();
     currentStep.value = 'menu';
   } else {
@@ -172,13 +198,13 @@ const handleModeSelection = async (mode: 'dine_in' | 'take_away') => {
   }
 };
 
-const selectRestaurant = async (res: any) => {
+const selectRestaurant = async (res: Restaurant): Promise<void> => {
   selectedRestaurant.value = res;
   await loadMenu();
   currentStep.value = 'menu';
 };
 
-const loadMenu = async () => {
+const loadMenu = async (): Promise<void> => {
   if (!selectedRestaurant.value) return;
   try {
     const [catRes, itemRes] = await Promise.all([
@@ -187,6 +213,7 @@ const loadMenu = async () => {
     ]);
     categories.value = catRes.data || catRes;
     menuItems.value = itemRes.data || itemRes;
+
     if (categories.value.length > 0 && !activeCategory.value) {
       activeCategory.value = categories.value[0].id;
     }
@@ -201,12 +228,3 @@ watch(activeCategory, () => {
 
 onMounted(fetchInitialData);
 </script>
-
-<style scoped>
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156,163,175,0.3); border-radius: 10px; }
-@keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
-</style>

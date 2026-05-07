@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
 use App\Actions\Order\{
@@ -9,7 +11,8 @@ use App\Actions\Order\{
     GetUserOrderContextAction,
     ListActiveOrdersAction,
     PayOrderAction,
-    RemoveOrderItemAction
+    RemoveOrderItemAction,
+    RequestBillAction
 };
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\{
@@ -18,7 +21,8 @@ use App\Http\Requests\Order\{
     PayOrderRequest,
     RemoveOrderItemRequest,
     ShowOrderRequest,
-    StoreOrderRequest
+    StoreOrderRequest,
+    RequestBillRequest
 };
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -104,6 +108,18 @@ class OrderController extends Controller
     {
         $action->execute($orderItem);
         return response()->json(null, 204);
+    }
+
+    #[OA\Patch(
+        path: '/api/orders/{order}/request-bill',
+        summary: 'Request the bill (call waiter)',
+        security: [['bearerAuth' => []]],
+        tags: ['Orders']
+    )]
+    public function requestBill(Order $order, RequestBillRequest $request, RequestBillAction $action): JsonResponse
+    {
+        $result = $action->execute($order);
+        return response()->json($result, 200);
     }
 
     #[OA\Patch(

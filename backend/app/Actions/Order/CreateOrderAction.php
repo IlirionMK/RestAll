@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Order;
 
 use App\Models\Order;
@@ -14,6 +16,7 @@ class CreateOrderAction
             'table_id' => $data['table_id'],
             'user_id' => $waiterId,
             'restaurant_id' => $restaurantId,
+            'reservation_id' => $data['reservation_id'] ?? null,
             'status' => 'pending',
             'total_amount' => 0,
         ]);
@@ -23,7 +26,10 @@ class CreateOrderAction
         event(new UserActionPerformed(
             action: 'order.created',
             model: $order,
-            payload: ['table_id' => $data['table_id']]
+            payload: [
+                'table_id' => $data['table_id'],
+                'reservation_id' => $order->reservation_id
+            ]
         ));
 
         return $order;

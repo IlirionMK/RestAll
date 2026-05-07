@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\{
     AuditLogController,
@@ -49,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{order}', [OrderController::class, 'show']);
         Route::post('/{order}/items', [OrderController::class, 'addItems']);
         Route::delete('/items/{orderItem}', [OrderController::class, 'removeItem']);
+        Route::patch('/{order}/request-bill', [OrderController::class, 'requestBill']);
         Route::patch('/{order}/pay', [OrderController::class, 'pay']);
     });
 

@@ -4,6 +4,7 @@ return [
     'paths' => [
         'api/*',
         'sanctum/csrf-cookie',
+        'broadcasting/auth',
         'auth/*',
         'users/*',
         'login',
