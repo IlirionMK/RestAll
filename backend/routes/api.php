@@ -51,3 +51,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/logs', [AuditLogController::class, 'index']);
 });
+Route::get("/tables", function() { return \App\Models\Table::all(); });
+Route::get("/menu/items", function() { return \App\Models\MenuItem::all(); });
+Route::middleware('auth:sanctum')->patch('/tables/{table}/status', [App\Http\Controllers\Api\TableController::class, 'updateStatus']);
