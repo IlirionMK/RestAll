@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Actions\Order;
 
+use App\Enums\OrderStatus;
+use App\Enums\TableStatus;
+use App\Events\UserActionPerformed;
 use App\Models\Order;
 use App\Models\Table;
-use App\Events\UserActionPerformed;
 
 class CreateOrderAction
 {
@@ -17,11 +19,11 @@ class CreateOrderAction
             'user_id' => $waiterId,
             'restaurant_id' => $restaurantId,
             'reservation_id' => $data['reservation_id'] ?? null,
-            'status' => 'pending',
+            'status' => OrderStatus::PENDING,
             'total_amount' => 0,
         ]);
 
-        Table::where('id', $data['table_id'])->update(['status' => 'occupied']);
+        Table::where('id', $data['table_id'])->update(['status' => TableStatus::OCCUPIED]);
 
         event(new UserActionPerformed(
             action: 'order.created',

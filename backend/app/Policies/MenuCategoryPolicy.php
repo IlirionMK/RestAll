@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
-use App\Models\User;
+use App\Enums\UserRole;
 use App\Models\MenuCategory;
+use App\Models\User;
 
 class MenuCategoryPolicy
 {
@@ -21,16 +22,16 @@ class MenuCategoryPolicy
 
     public function create(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 
     public function update(User $user, MenuCategory $menuCategory): bool
     {
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 
     public function delete(User $user, MenuCategory $menuCategory): bool
     {
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 }

@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Models;
+declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\User;
 
 class MenuPolicy
@@ -15,16 +16,16 @@ class MenuPolicy
 
     public function create(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 
     public function update(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->role === UserRole::ADMIN;
     }
 
     public function toggleAvailability(User $user): bool
     {
-        return in_array($user->role, ['admin', 'waiter']);
+        return in_array($user->role, [UserRole::ADMIN, UserRole::WAITER]);
     }
 }

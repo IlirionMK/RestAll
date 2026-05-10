@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Actions\Order;
 
-use App\Models\Order;
+use App\Enums\OrderStatus;
 use App\Events\OrderBillingRequested;
 use App\Events\UserActionPerformed;
+use App\Models\Order;
 
 class RequestBillAction
 {
     public function execute(Order $order): Order
     {
-        $order->update(['status' => 'billing_requested']);
+        $order->update(['status' => OrderStatus::BILLING_REQUESTED]);
 
         broadcast(new OrderBillingRequested($order->load(['table', 'user'])))->toOthers();
 

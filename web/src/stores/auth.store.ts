@@ -23,7 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
     };
 
     const loginWithGoogle = () => {
-        window.location.href = 'http://localhost:8000/api/auth/google/redirect';
+        window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/redirect`;
     };
 
     const login = async (credentials: any) => {

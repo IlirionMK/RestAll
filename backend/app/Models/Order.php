@@ -4,20 +4,32 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
 use App\Traits\BelongsToRestaurant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 
-#[Fillable(['restaurant_id', 'table_id', 'user_id', 'reservation_id', 'total_amount', 'status', 'paid_at'])]
 class Order extends Model
 {
     use BelongsToRestaurant;
 
+    protected $fillable = [
+        'restaurant_id',
+        'table_id',
+        'user_id',
+        'reservation_id',
+        'total_amount',
+        'status',
+        'is_takeaway',
+        'paid_at',
+    ];
+
     protected function casts(): array
     {
         return [
+            'status' => OrderStatus::class,
+            'is_takeaway' => 'boolean',
             'paid_at' => 'datetime',
         ];
     }

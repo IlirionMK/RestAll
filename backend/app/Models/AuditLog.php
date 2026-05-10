@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -14,15 +16,23 @@ class AuditLog extends Model
         'model_type',
         'model_id',
         'payload',
-        'ip_address'
+        'ip_address',
     ];
 
-    protected $casts = [
-        'payload' => 'array'
-    ];
+    protected function casts(): array
+    {
+        return [
+            'payload' => 'array',
+        ];
+    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function restaurant(): BelongsTo
+    {
+        return $this->belongsTo(Restaurant::class);
     }
 }

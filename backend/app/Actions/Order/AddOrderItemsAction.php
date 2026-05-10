@@ -2,8 +2,10 @@
 
 namespace App\Actions\Order;
 
-use App\Models\Order;
+use App\Enums\OrderItemStatus;
+use App\Events\UserActionPerformed;
 use App\Models\MenuItem;
+use App\Models\Order;
 
 class AddOrderItemsAction
 {
@@ -17,14 +19,14 @@ class AddOrderItemsAction
                 'name' => $menuItem->name,
                 'price' => $menuItem->price,
                 'quantity' => $item['quantity'],
-                'status' => 'ordered',
+                'status' => OrderItemStatus::PENDING,
                 'comment' => $item['comment'] ?? null,
             ]);
 
             $order->increment('total_amount', $menuItem->price * $item['quantity']);
         }
 
-        event(new \App\Events\UserActionPerformed(
+        event(new UserActionPerformed(
             action: 'order.items_added',
             model: $order,
             payload: ['items_count' => count($items)]

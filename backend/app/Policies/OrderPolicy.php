@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
-use App\Models\User;
+use App\Enums\OrderStatus;
+use App\Enums\UserRole;
 use App\Models\Order;
+use App\Models\User;
 
 class OrderPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'waiter', 'chef']);
+        return in_array($user->role, [UserRole::ADMIN, UserRole::WAITER, UserRole::CHEF]);
     }
 
     public function view(User $user, Order $order): bool
     {
-        if (in_array($user->role, ['admin', 'waiter', 'chef'])) {
+        if (in_array($user->role, [UserRole::ADMIN, UserRole::WAITER, UserRole::CHEF])) {
             return true;
         }
 
@@ -25,16 +27,16 @@ class OrderPolicy
 
     public function create(User $user): bool
     {
-        return in_array($user->role, ['waiter', 'guest']);
+        return in_array($user->role, [UserRole::WAITER, UserRole::GUEST]);
     }
 
     public function addItems(User $user, Order $order): bool
     {
-        if ($order->status !== 'pending') {
+        if ($order->status !== OrderStatus::PENDING) {
             return false;
         }
 
-        if (in_array($user->role, ['admin', 'waiter'])) {
+        if (in_array($user->role, [UserRole::ADMIN, UserRole::WAITER])) {
             return true;
         }
 
@@ -43,11 +45,11 @@ class OrderPolicy
 
     public function pay(User $user, Order $order): bool
     {
-        if ($order->status !== 'pending') {
+        if ($order->status !== OrderStatus::PENDING) {
             return false;
         }
 
-        if (in_array($user->role, ['admin', 'waiter'])) {
+        if (in_array($user->role, [UserRole::ADMIN, UserRole::WAITER])) {
             return true;
         }
 
@@ -56,6 +58,6 @@ class OrderPolicy
 
     public function close(User $user): bool
     {
-        return in_array($user->role, ['admin', 'waiter']);
+        return in_array($user->role, [UserRole::ADMIN, UserRole::WAITER]);
     }
 }

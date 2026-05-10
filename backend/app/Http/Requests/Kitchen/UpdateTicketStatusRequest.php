@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Kitchen;
 
+use App\Enums\OrderItemStatus;
 use App\Models\OrderItem;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,7 +17,7 @@ class UpdateTicketStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'string', Rule::in(['pending', 'preparing', 'ready', 'delivered'])],
+            'status' => ['required', 'string', Rule::enum(OrderItemStatus::class)],
         ];
     }
 }

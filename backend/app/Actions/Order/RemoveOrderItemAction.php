@@ -11,7 +11,7 @@ class RemoveOrderItemAction
     {
         DB::transaction(function () use ($orderItem) {
             $order = $orderItem->order;
-            $order->decrement('total_price', $orderItem->price_at_order * $orderItem->quantity);
+            $order->decrement('total_amount', $orderItem->price * $orderItem->quantity);
             $orderItem->delete();
         });
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\ReservationStatus;
+use App\Enums\UserRole;
 use App\Models\Reservation;
 use App\Models\User;
 
@@ -16,7 +18,7 @@ class ReservationPolicy
 
     public function view(User $user, Reservation $reservation): bool
     {
-        if (in_array($user->role, ['admin', 'waiter'])) {
+        if (in_array($user->role, [UserRole::ADMIN, UserRole::WAITER])) {
             return true;
         }
 
@@ -30,19 +32,21 @@ class ReservationPolicy
 
     public function update(User $user, Reservation $reservation): bool
     {
-        if (in_array($user->role, ['admin', 'waiter'])) {
+        if (in_array($user->role, [UserRole::ADMIN, UserRole::WAITER])) {
             return true;
         }
 
-        return $user->id === $reservation->user_id && $reservation->status->value === 'pending';
+        return $user->id === $reservation->user_id
+            && $reservation->status === ReservationStatus::PENDING;
     }
 
     public function delete(User $user, Reservation $reservation): bool
     {
-        if ($user->role === 'admin') {
+        if ($user->role === UserRole::ADMIN) {
             return true;
         }
 
-        return $user->id === $reservation->user_id && $reservation->status->value === 'pending';
+        return $user->id === $reservation->user_id
+            && $reservation->status === ReservationStatus::PENDING;
     }
 }
