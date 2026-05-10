@@ -83,6 +83,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [ReservationController::class, 'index']);
         Route::post('/', [ReservationController::class, 'store']);
         Route::delete('/{reservation}', [ReservationController::class, 'destroy']);
+        Route::post('/{reservation}/orders', [ReservationController::class, 'createOrder']);
+        Route::get('/{reservation}/order', [ReservationController::class, 'showOrder']);
     });
 
     Route::prefix('kitchen')->group(function () {

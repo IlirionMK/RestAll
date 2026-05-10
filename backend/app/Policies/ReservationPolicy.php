@@ -49,4 +49,26 @@ class ReservationPolicy
         return $user->id === $reservation->user_id
             && $reservation->status === ReservationStatus::PENDING;
     }
+
+    public function createOrder(User $user, Reservation $reservation): bool
+    {
+        if (!in_array($reservation->status, [ReservationStatus::PENDING, ReservationStatus::CONFIRMED])) {
+            return false;
+        }
+
+        if (in_array($user->role, [UserRole::ADMIN, UserRole::WAITER])) {
+            return true;
+        }
+
+        return $user->id === $reservation->user_id;
+    }
+
+    public function viewOrder(User $user, Reservation $reservation): bool
+    {
+        if (in_array($user->role, [UserRole::ADMIN, UserRole::WAITER])) {
+            return true;
+        }
+
+        return $user->id === $reservation->user_id;
+    }
 }

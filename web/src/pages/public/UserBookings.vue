@@ -76,22 +76,36 @@
           :booking="booking"
       >
         <template #actions>
-          <BaseButton
-              v-if="['pending', 'confirmed'].includes(booking.status)"
-              @click="cancelBooking(booking.id)"
-              variant="ghost"
-              class="w-full rounded-2xl py-4 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 border-none font-black text-[11px] uppercase tracking-widest"
-              :disabled="processingId === booking.id"
-          >
-            <Loader2 v-if="processingId === booking.id" class="w-4 h-4 animate-spin mr-2" />
-            {{ t('bookings.cancel_btn') }}
-          </BaseButton>
+          <template v-if="['pending', 'confirmed'].includes(booking.status)">
+            <BaseButton
+                variant="primary"
+                class="w-full rounded-2xl py-4 font-black text-[11px] uppercase tracking-widest"
+                @click="openOrderModal(booking)"
+            >
+              {{ t('order.start_order') }}
+            </BaseButton>
+            <BaseButton
+                @click="cancelBooking(booking.id)"
+                variant="ghost"
+                class="w-full rounded-2xl py-3 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 border-none font-black text-[11px] uppercase tracking-widest"
+                :disabled="processingId === booking.id"
+            >
+              <Loader2 v-if="processingId === booking.id" class="w-4 h-4 animate-spin mr-2" />
+              {{ t('bookings.cancel_btn') }}
+            </BaseButton>
+          </template>
           <div v-else class="w-full py-4 text-center text-[10px] font-black uppercase text-gray-400 bg-gray-50 dark:bg-gray-900/30 rounded-2xl tracking-widest">
             {{ t('bookings.archived_label') }}
           </div>
         </template>
       </BookingCard>
     </div>
+
+    <ReservationOrderModal
+        v-if="selectedBooking"
+        v-model="orderModalOpen"
+        :booking="selectedBooking"
+    />
 
     <div v-if="loading" class="fixed inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
       <Loader2 class="w-16 h-16 animate-spin text-restall-gold" />
@@ -112,12 +126,20 @@ import {
 } from 'lucide-vue-next';
 import { ReservationsService } from '@/api/reservations.service';
 import BookingCard from '@/components/Booking/BookingCard.vue';
+import ReservationOrderModal from '@/components/Booking/ReservationOrderModal.vue';
 import BaseButton from '@/components/UI/BaseButton.vue';
 
 const { t } = useI18n();
 const bookings = ref<any[]>([]);
 const loading = ref(true);
 const processingId = ref<number | null>(null);
+const orderModalOpen = ref(false);
+const selectedBooking = ref<any>(null);
+
+const openOrderModal = (booking: any) => {
+  selectedBooking.value = booking;
+  orderModalOpen.value = true;
+};
 
 const filters = reactive({
   search: '',

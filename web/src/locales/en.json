@@ -129,7 +129,19 @@
     "loading_menu": "Loading delicious menu items...",
     "cart": "Your Order",
     "cart_empty": "Your cart is currently empty.",
-    "checkout": "Place Order"
+    "checkout": "Place Order",
+    "start_order": "Start Order",
+    "request_bill": "Request Bill",
+    "bill_requested": "Bill Requested",
+    "add_items": "Add Items",
+    "no_order_yet": "No order placed yet.",
+    "items_in_order": "Items in order",
+    "total": "Total",
+    "takeaway_label": "Takeaway",
+    "takeaway_hint": "I will pick up the order myself",
+    "status_pending": "In progress",
+    "status_billing_requested": "Bill requested",
+    "status_paid": "Paid"
   },
   "errors": {
     "table_occupied": "Table already occupied.",

@@ -9,6 +9,8 @@ use App\Http\Requests\Menu\StoreMenuCategoryRequest;
 use App\Http\Requests\Menu\UpdateMenuCategoryRequest;
 use App\Models\MenuCategory;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Menu Categories', description: 'Management of restaurant menu categories')]
@@ -44,9 +46,17 @@ class MenuCategoryController extends Controller
             )
         )
     )]
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(MenuCategory::with('items')->orderBy('sort_order')->get(), 200);
+        $query = MenuCategory::with(['items' => fn($q) => $q->where('is_available', true)])
+            ->orderBy('sort_order');
+
+        if (!Auth::user()?->restaurant_id && $request->filled('restaurant_id')) {
+            $query->withoutGlobalScope('restaurant')
+                ->where('restaurant_id', $request->integer('restaurant_id'));
+        }
+
+        return response()->json($query->get(), 200);
     }
 
     #[OA\Post(

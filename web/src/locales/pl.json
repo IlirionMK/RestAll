@@ -129,7 +129,19 @@
     "loading_menu": "Ładowanie pysznego menu...",
     "cart": "Twoje zamówienie",
     "cart_empty": "Twój koszyk jest pusty.",
-    "checkout": "Złóż zamówienie"
+    "checkout": "Złóż zamówienie",
+    "start_order": "Rozpocznij zamówienie",
+    "request_bill": "Poproś o rachunek",
+    "bill_requested": "Rachunek zamówiony",
+    "add_items": "Dodaj pozycje",
+    "no_order_yet": "Nie złożono jeszcze zamówienia.",
+    "items_in_order": "Pozycje zamówienia",
+    "total": "Suma",
+    "takeaway_label": "Na wynos",
+    "takeaway_hint": "Odbiór osobisty",
+    "status_pending": "W trakcie",
+    "status_billing_requested": "Rachunek zamówiony",
+    "status_paid": "Opłacone"
   },
   "errors": {
     "table_occupied": "Ten stolik jest już zajęty w wybranym terminie.",

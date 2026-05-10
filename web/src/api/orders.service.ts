@@ -50,5 +50,9 @@ export const OrdersService = {
 
     pay(id: number | string) {
         return api.patch(`/api/orders/${id}/pay`);
+    },
+
+    requestBill(id: number | string) {
+        return api.patch(`/api/orders/${id}/request-bill`);
     }
 };
