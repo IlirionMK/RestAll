@@ -34,6 +34,7 @@ Route::prefix('auth')->group(function () {
 
 Route::get('/restaurants', [RestaurantController::class, 'index']);
 Route::get('/restaurants/{restaurant}', [RestaurantController::class, 'show']);
+Route::get('/menu/categories', [MenuCategoryController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -67,7 +68,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('menu')->group(function () {
-        Route::get('/categories', [MenuCategoryController::class, 'index']);
         Route::post('/items', [MenuItemController::class, 'store']);
         Route::put('/items/{menuItem}', [MenuItemController::class, 'update']);
         Route::patch('/items/{menuItem}/availability', [MenuItemController::class, 'toggleAvailability']);

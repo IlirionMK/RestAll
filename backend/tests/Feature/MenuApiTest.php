@@ -51,9 +51,21 @@ class MenuApiTest extends TestCase
         ]);
     }
 
-    // --- Категории ---
 
-    public function test_anyone_can_view_menu_categories(): void
+    public function test_unauthenticated_can_view_menu_categories_by_restaurant(): void
+    {
+        MenuItem::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'menu_category_id' => $this->category->id,
+            'is_available' => true,
+        ]);
+
+        $this->getJson('/api/menu/categories?restaurant_id=' . $this->restaurant->id)
+            ->assertOk()
+            ->assertJsonCount(1);
+    }
+
+    public function test_authenticated_user_can_view_menu_categories(): void
     {
         MenuItem::factory()->create([
             'restaurant_id' => $this->restaurant->id,
@@ -88,7 +100,6 @@ class MenuApiTest extends TestCase
         $this->assertCount(1, $response->json('0.items'));
     }
 
-    // --- Блюда: создание ---
 
     public function test_admin_can_create_menu_item(): void
     {
@@ -126,7 +137,6 @@ class MenuApiTest extends TestCase
             ->assertForbidden();
     }
 
-    // --- Блюда: редактирование ---
 
     public function test_admin_can_update_menu_item(): void
     {
@@ -154,7 +164,6 @@ class MenuApiTest extends TestCase
             ->assertForbidden();
     }
 
-    // --- Блюда: доступность ---
 
     public function test_admin_can_toggle_item_availability(): void
     {
@@ -196,7 +205,6 @@ class MenuApiTest extends TestCase
             ->assertForbidden();
     }
 
-    // --- Блюда: удаление ---
 
     public function test_admin_can_delete_menu_item(): void
     {

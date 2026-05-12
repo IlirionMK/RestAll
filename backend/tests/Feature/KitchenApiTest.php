@@ -63,7 +63,6 @@ class KitchenApiTest extends TestCase
         ], $attrs));
     }
 
-    // --- RES-14: список тикетов ---
 
     public function test_chef_sees_pending_and_preparing_tickets(): void
     {
@@ -108,7 +107,6 @@ class KitchenApiTest extends TestCase
         $this->getJson('/api/kitchen/tickets')->assertUnauthorized();
     }
 
-    // --- RES-15: смена статуса ---
 
     public function test_chef_can_advance_ticket_status(): void
     {
@@ -179,7 +177,6 @@ class KitchenApiTest extends TestCase
             ->assertForbidden();
     }
 
-    // --- RES-16: push-уведомление официанту ---
 
     public function test_waiter_notified_when_item_becomes_ready(): void
     {
@@ -209,7 +206,6 @@ class KitchenApiTest extends TestCase
         Event::assertNotDispatched(WaiterItemReady::class);
     }
 
-    // --- RES-14: broadcast при добавлении блюд ---
 
     public function test_adding_order_items_broadcasts_to_kitchen(): void
     {

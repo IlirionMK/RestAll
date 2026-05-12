@@ -36,7 +36,6 @@ class UserApiTest extends TestCase
         ]);
     }
 
-    // --- Профиль ---
 
     public function test_user_can_get_own_profile(): void
     {
@@ -60,7 +59,6 @@ class UserApiTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $this->waiter->id, 'name' => 'New Name']);
     }
 
-    // --- Управление персоналом ---
 
     public function test_admin_can_list_staff(): void
     {

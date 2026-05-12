@@ -24,6 +24,7 @@ use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Resources\OrderBillResource;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Table;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use OpenApi\Attributes as OA;
@@ -66,10 +67,13 @@ class OrderController extends Controller
     )]
     public function store(StoreOrderRequest $request, CreateOrderAction $action): JsonResponse
     {
+        $restaurantId = $request->user()->restaurant_id
+            ?? Table::findOrFail($request->validated('table_id'))->restaurant_id;
+
         $order = $action->execute(
             $request->validated(),
             $request->user()->id,
-            $request->user()->restaurant_id
+            $restaurantId
         );
         Cache::forget("user_{$request->user()->id}_orders");
 

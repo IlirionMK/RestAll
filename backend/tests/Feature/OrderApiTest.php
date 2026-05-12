@@ -9,6 +9,7 @@ use App\Events\OrderBillingRequested;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Reservation;
 use App\Models\Restaurant;
 use App\Models\Table;
 use App\Models\User;
@@ -68,7 +69,6 @@ class OrderApiTest extends TestCase
         ]);
     }
 
-    // --- Lifecycle ---
 
     public function test_complete_order_lifecycle(): void
     {
@@ -95,7 +95,6 @@ class OrderApiTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['user_id' => $this->waiter->id, 'action' => 'order.paid']);
     }
 
-    // --- Список заказов ---
 
     public function test_waiter_can_list_orders(): void
     {
@@ -118,7 +117,6 @@ class OrderApiTest extends TestCase
             ->assertForbidden();
     }
 
-    // --- Просмотр заказа ---
 
     public function test_waiter_can_view_order(): void
     {
@@ -134,7 +132,6 @@ class OrderApiTest extends TestCase
             ->assertJsonFragment(['id' => $order->id]);
     }
 
-    // --- Удаление позиции ---
 
     public function test_waiter_can_remove_order_item(): void
     {
@@ -157,7 +154,6 @@ class OrderApiTest extends TestCase
         $this->assertDatabaseMissing('order_items', ['id' => $item->id]);
     }
 
-    // --- RES-17: просмотр чека ---
 
     public function test_cashier_can_view_bill(): void
     {
@@ -226,10 +222,9 @@ class OrderApiTest extends TestCase
 
         $this->actingAs($this->chef)
             ->getJson("/api/orders/{$order->id}/bill")
-            ->assertOk(); // chef has view access via OrderPolicy
+            ->assertOk();
     }
 
-    // --- RES-18: оплата кассиром ---
 
     public function test_cashier_can_pay_order(): void
     {
@@ -274,7 +269,6 @@ class OrderApiTest extends TestCase
             ->assertForbidden();
     }
 
-    // --- Запрос счёта (RES-13) ---
 
     public function test_request_bill_broadcasts_event(): void
     {
@@ -291,5 +285,47 @@ class OrderApiTest extends TestCase
             ->assertOk();
 
         Event::assertDispatched(OrderBillingRequested::class);
+    }
+
+
+    public function test_guest_can_create_order_with_confirmed_reservation(): void
+    {
+        $reservation = Reservation::factory()->confirmed()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->guest->id,
+        ]);
+
+        $this->actingAs($this->guest)
+            ->postJson('/api/orders', [
+                'table_id' => $this->table->id,
+                'reservation_id' => $reservation->id,
+            ])
+            ->assertStatus(201);
+    }
+
+    public function test_guest_cannot_create_order_without_reservation(): void
+    {
+        $this->actingAs($this->guest)
+            ->postJson('/api/orders', ['table_id' => $this->table->id])
+            ->assertUnprocessable();
+    }
+
+    public function test_guest_cannot_create_order_with_someone_elses_reservation(): void
+    {
+        $otherGuest = User::factory()->create(['role' => 'guest']);
+
+        $reservation = Reservation::factory()->confirmed()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'table_id' => $this->table->id,
+            'user_id' => $otherGuest->id,
+        ]);
+
+        $this->actingAs($this->guest)
+            ->postJson('/api/orders', [
+                'table_id' => $this->table->id,
+                'reservation_id' => $reservation->id,
+            ])
+            ->assertUnprocessable();
     }
 }
