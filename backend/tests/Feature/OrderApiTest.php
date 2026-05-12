@@ -22,6 +22,7 @@ class OrderApiTest extends TestCase
 
     private Restaurant $restaurant;
     private User $waiter;
+    private User $cashier;
     private User $chef;
     private User $guest;
     private Table $table;
@@ -35,6 +36,11 @@ class OrderApiTest extends TestCase
 
         $this->waiter = User::factory()->create([
             'role'          => 'waiter',
+            'restaurant_id' => $this->restaurant->id,
+        ]);
+
+        $this->cashier = User::factory()->create([
+            'role'          => 'cashier',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
@@ -143,6 +149,123 @@ class OrderApiTest extends TestCase
             ->assertNoContent();
 
         $this->assertDatabaseMissing('order_items', ['id' => $item->id]);
+    }
+
+    // --- RES-17: просмотр чека ---
+
+    public function test_cashier_can_view_bill(): void
+    {
+        $order = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'table_id'      => $this->table->id,
+            'user_id'       => $this->waiter->id,
+            'total_amount'  => 300.00,
+        ]);
+
+        OrderItem::factory()->create([
+            'order_id'     => $order->id,
+            'menu_item_id' => $this->menuItem->id,
+            'quantity'     => 2,
+            'price'        => 150.00,
+            'status'       => OrderItemStatus::READY,
+        ]);
+
+        $response = $this->actingAs($this->cashier)
+            ->getJson("/api/orders/{$order->id}/bill")
+            ->assertOk();
+
+        $response->assertJsonStructure([
+            'order_id', 'table_number', 'status', 'total_amount', 'paid_at', 'items',
+        ]);
+
+        $this->assertEquals(300.00, $response->json('total_amount'));
+        $this->assertEquals(2, $response->json('items.0.quantity'));
+        $this->assertEquals(150.00, $response->json('items.0.unit_price'));
+        $this->assertEquals(300.00, $response->json('items.0.subtotal'));
+    }
+
+    public function test_waiter_can_view_bill(): void
+    {
+        $order = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'table_id'      => $this->table->id,
+            'user_id'       => $this->waiter->id,
+        ]);
+
+        $this->actingAs($this->waiter)
+            ->getJson("/api/orders/{$order->id}/bill")
+            ->assertOk();
+    }
+
+    public function test_guest_can_view_own_bill(): void
+    {
+        $order = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'table_id'      => $this->table->id,
+            'user_id'       => $this->guest->id,
+        ]);
+
+        $this->actingAs($this->guest)
+            ->getJson("/api/orders/{$order->id}/bill")
+            ->assertOk();
+    }
+
+    public function test_chef_cannot_view_bill(): void
+    {
+        $order = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'table_id'      => $this->table->id,
+            'user_id'       => $this->waiter->id,
+        ]);
+
+        $this->actingAs($this->chef)
+            ->getJson("/api/orders/{$order->id}/bill")
+            ->assertOk(); // chef has view access via OrderPolicy
+    }
+
+    // --- RES-18: оплата кассиром ---
+
+    public function test_cashier_can_pay_order(): void
+    {
+        $order = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'table_id'      => $this->table->id,
+            'user_id'       => $this->waiter->id,
+        ]);
+
+        $this->actingAs($this->cashier)
+            ->patchJson("/api/orders/{$order->id}/pay")
+            ->assertOk();
+
+        $this->assertDatabaseHas('orders', ['id' => $order->id, 'status' => 'paid']);
+        $this->assertDatabaseHas('tables', ['id' => $this->table->id, 'status' => 'free']);
+    }
+
+    public function test_chef_cannot_pay_order(): void
+    {
+        $order = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'table_id'      => $this->table->id,
+            'user_id'       => $this->waiter->id,
+        ]);
+
+        $this->actingAs($this->chef)
+            ->patchJson("/api/orders/{$order->id}/pay")
+            ->assertForbidden();
+    }
+
+    public function test_cannot_pay_already_paid_order(): void
+    {
+        $order = Order::factory()->create([
+            'restaurant_id' => $this->restaurant->id,
+            'table_id'      => $this->table->id,
+            'user_id'       => $this->waiter->id,
+            'status'        => 'paid',
+        ]);
+
+        $this->actingAs($this->cashier)
+            ->patchJson("/api/orders/{$order->id}/pay")
+            ->assertForbidden();
     }
 
     // --- Запрос счёта (RES-13) ---

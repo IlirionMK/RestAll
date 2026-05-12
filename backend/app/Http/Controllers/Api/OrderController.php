@@ -20,10 +20,12 @@ use App\Http\Requests\Order\{
     ListOrdersRequest,
     PayOrderRequest,
     RemoveOrderItemRequest,
+    ShowBillRequest,
     ShowOrderRequest,
     StoreOrderRequest,
     RequestBillRequest
 };
+use App\Http\Resources\OrderBillResource;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\JsonResponse;
@@ -122,12 +124,44 @@ class OrderController extends Controller
         return response()->json($result, 200);
     }
 
-    #[OA\Patch(
-        path: '/api/orders/{order}/pay',
-        summary: 'Pay order',
+    #[OA\Get(
+        path: '/api/orders/{order}/bill',
+        summary: 'Get formatted bill for an order',
         security: [['bearerAuth' => []]],
         tags: ['Orders']
     )]
+    #[OA\Response(
+        response: 200,
+        description: 'Order bill with itemized amounts',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'order_id', type: 'integer'),
+                new OA\Property(property: 'table_number', type: 'string', nullable: true),
+                new OA\Property(property: 'status', type: 'string'),
+                new OA\Property(property: 'total_amount', type: 'number'),
+                new OA\Property(property: 'paid_at', type: 'string', nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Not Found')]
+    public function bill(Order $order, ShowBillRequest $request): JsonResponse
+    {
+        return response()->json(
+            new OrderBillResource($order->loadMissing(['items', 'table'])),
+            200
+        );
+    }
+
+    #[OA\Patch(
+        path: '/api/orders/{order}/pay',
+        summary: 'Pay order (cashier)',
+        security: [['bearerAuth' => []]],
+        tags: ['Orders']
+    )]
+    #[OA\Response(response: 200, description: 'Order paid and closed')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Not Found')]
     public function pay(Order $order, PayOrderRequest $request, PayOrderAction $action): JsonResponse
     {
         $result = $action->execute($order);

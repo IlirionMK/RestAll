@@ -13,12 +13,12 @@ class OrderPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRole::ADMIN, UserRole::WAITER, UserRole::CHEF]);
+        return in_array($user->role, [UserRole::ADMIN, UserRole::CASHIER, UserRole::WAITER, UserRole::CHEF]);
     }
 
     public function view(User $user, Order $order): bool
     {
-        if (in_array($user->role, [UserRole::ADMIN, UserRole::WAITER, UserRole::CHEF])) {
+        if (in_array($user->role, [UserRole::ADMIN, UserRole::CASHIER, UserRole::WAITER, UserRole::CHEF])) {
             return true;
         }
 
@@ -49,7 +49,7 @@ class OrderPolicy
             return false;
         }
 
-        if (in_array($user->role, [UserRole::ADMIN, UserRole::WAITER])) {
+        if (in_array($user->role, [UserRole::ADMIN, UserRole::CASHIER, UserRole::WAITER])) {
             return true;
         }
 

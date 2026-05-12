@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [OrderController::class, 'index']);
         Route::post('/', [OrderController::class, 'store']);
         Route::get('/{order}', [OrderController::class, 'show']);
+        Route::get('/{order}/bill', [OrderController::class, 'bill']);
         Route::post('/{order}/items', [OrderController::class, 'addItems']);
         Route::delete('/items/{orderItem}', [OrderController::class, 'removeItem']);
         Route::patch('/{order}/request-bill', [OrderController::class, 'requestBill']);

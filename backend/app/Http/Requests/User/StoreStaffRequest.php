@@ -19,7 +19,7 @@ class StoreStaffRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', 'string', Rule::in(['admin', 'waiter', 'chef', 'guest'])],
+            'role' => ['required', 'string', Rule::in(['admin', 'cashier', 'waiter', 'chef', 'guest'])],
         ];
     }
 }
