@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Order;
 
+use App\Enums\OrderItemStatus;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RemoveOrderItemRequest extends FormRequest
@@ -9,7 +10,7 @@ class RemoveOrderItemRequest extends FormRequest
     public function authorize(): bool
     {
         $orderItem = $this->route('orderItem');
-        return $this->user()->can('delete', $orderItem) && $orderItem->status === 'ordered';
+        return $this->user()->can('delete', $orderItem) && $orderItem->status === OrderItemStatus::PENDING;
     }
 
     public function rules(): array

@@ -6,6 +6,7 @@ namespace App\Actions\Kitchen;
 
 use App\Enums\OrderItemStatus;
 use App\Events\KitchenTicketStatusUpdated;
+use App\Events\WaiterItemReady;
 use App\Models\OrderItem;
 
 class UpdateTicketStatusAction
@@ -30,7 +31,13 @@ class UpdateTicketStatusAction
 
         $orderItem->update(['status' => $newStatus]);
 
-        broadcast(new KitchenTicketStatusUpdated($orderItem->fresh(['order.table'])));
+        $fresh = $orderItem->fresh(['order.table']);
+
+        broadcast(new KitchenTicketStatusUpdated($fresh));
+
+        if ($newStatus === OrderItemStatus::READY) {
+            broadcast(new WaiterItemReady($fresh));
+        }
 
         return $orderItem;
     }

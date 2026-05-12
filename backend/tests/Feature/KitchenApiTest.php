@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Enums\OrderItemStatus;
 use App\Events\KitchenOrderItemsAdded;
 use App\Events\KitchenTicketStatusUpdated;
+use App\Events\WaiterItemReady;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -174,6 +175,36 @@ class KitchenApiTest extends TestCase
         $this->actingAs($waiter)
             ->patchJson("/api/kitchen/tickets/{$item->id}/status", ['status' => 'preparing'])
             ->assertForbidden();
+    }
+
+    // --- RES-16: push-уведомление официанту ---
+
+    public function test_waiter_notified_when_item_becomes_ready(): void
+    {
+        Event::fake([KitchenTicketStatusUpdated::class, WaiterItemReady::class]);
+
+        $item = $this->makeItem(['status' => OrderItemStatus::PREPARING]);
+
+        $this->actingAs($this->chef)
+            ->patchJson("/api/kitchen/tickets/{$item->id}/status", ['status' => 'ready'])
+            ->assertOk();
+
+        Event::assertDispatched(WaiterItemReady::class, function (WaiterItemReady $event) use ($item) {
+            return $event->orderItem->id === $item->id;
+        });
+    }
+
+    public function test_waiter_not_notified_on_intermediate_status(): void
+    {
+        Event::fake([KitchenTicketStatusUpdated::class, WaiterItemReady::class]);
+
+        $item = $this->makeItem();
+
+        $this->actingAs($this->chef)
+            ->patchJson("/api/kitchen/tickets/{$item->id}/status", ['status' => 'preparing'])
+            ->assertOk();
+
+        Event::assertNotDispatched(WaiterItemReady::class);
     }
 
     // --- RES-14: broadcast при добавлении блюд ---

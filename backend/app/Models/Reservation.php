@@ -4,12 +4,13 @@ namespace App\Models;
 
 use App\Enums\ReservationStatus;
 use App\Traits\BelongsToRestaurant;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Reservation extends Model
 {
-    use BelongsToRestaurant;
+    use BelongsToRestaurant, HasFactory;
 
     protected $fillable = [
         'table_id',

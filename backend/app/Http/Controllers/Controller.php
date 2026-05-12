@@ -17,5 +17,5 @@ use OpenApi\Attributes as OA;
 )]
 abstract class Controller
 {
-    //
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 }

@@ -18,4 +18,9 @@ class KitchenPolicy
     {
         return in_array($user->role, [UserRole::CHEF, UserRole::ADMIN]);
     }
+
+    public function delete(User $user): bool
+    {
+        return in_array($user->role, [UserRole::WAITER, UserRole::ADMIN]);
+    }
 }
