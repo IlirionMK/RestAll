@@ -30,7 +30,7 @@ class CreateOrderAction
             model: $order,
             payload: [
                 'table_id' => $data['table_id'],
-                'reservation_id' => $order->reservation_id
+                'reservation_id' => $order->reservation_id,
             ]
         ));
 

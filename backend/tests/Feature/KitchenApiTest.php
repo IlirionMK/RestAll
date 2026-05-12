@@ -23,7 +23,9 @@ class KitchenApiTest extends TestCase
     use RefreshDatabase;
 
     private Restaurant $restaurant;
+
     private User $chef;
+
     private Order $order;
 
     protected function setUp(): void
@@ -33,12 +35,12 @@ class KitchenApiTest extends TestCase
         $this->restaurant = Restaurant::factory()->create();
 
         $this->chef = User::factory()->create([
-            'role'          => 'chef',
+            'role' => 'chef',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
         $waiter = User::factory()->create([
-            'role'          => 'waiter',
+            'role' => 'waiter',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
@@ -46,8 +48,8 @@ class KitchenApiTest extends TestCase
 
         $this->order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $table->id,
-            'user_id'       => $waiter->id,
+            'table_id' => $table->id,
+            'user_id' => $waiter->id,
         ]);
     }
 
@@ -56,7 +58,7 @@ class KitchenApiTest extends TestCase
         $menuItem = MenuItem::factory()->create(['restaurant_id' => $this->restaurant->id]);
 
         return OrderItem::factory()->create(array_merge([
-            'order_id'     => $this->order->id,
+            'order_id' => $this->order->id,
             'menu_item_id' => $menuItem->id,
         ], $attrs));
     }
@@ -65,9 +67,9 @@ class KitchenApiTest extends TestCase
 
     public function test_chef_sees_pending_and_preparing_tickets(): void
     {
-        $pending   = $this->makeItem();
+        $pending = $this->makeItem();
         $preparing = $this->makeItem(['status' => OrderItemStatus::PREPARING]);
-        $ready     = $this->makeItem(['status' => OrderItemStatus::READY]);
+        $ready = $this->makeItem(['status' => OrderItemStatus::READY]);
 
         $response = $this->actingAs($this->chef)
             ->getJson('/api/kitchen/tickets');
@@ -92,7 +94,7 @@ class KitchenApiTest extends TestCase
     public function test_waiter_cannot_access_kitchen_tickets(): void
     {
         $waiter = User::factory()->create([
-            'role'          => 'waiter',
+            'role' => 'waiter',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
@@ -120,7 +122,7 @@ class KitchenApiTest extends TestCase
             ->assertJsonFragment(['status' => 'preparing']);
 
         $this->assertDatabaseHas('order_items', [
-            'id'     => $item->id,
+            'id' => $item->id,
             'status' => 'preparing',
         ]);
 
@@ -166,7 +168,7 @@ class KitchenApiTest extends TestCase
     public function test_waiter_cannot_update_ticket_status(): void
     {
         $waiter = User::factory()->create([
-            'role'          => 'waiter',
+            'role' => 'waiter',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
@@ -213,8 +215,8 @@ class KitchenApiTest extends TestCase
     {
         Event::fake([KitchenOrderItemsAdded::class]);
 
-        $waiter   = User::factory()->create([
-            'role'          => 'waiter',
+        $waiter = User::factory()->create([
+            'role' => 'waiter',
             'restaurant_id' => $this->restaurant->id,
         ]);
         $menuItem = MenuItem::factory()->create(['restaurant_id' => $this->restaurant->id]);

@@ -15,12 +15,12 @@ class ReservationFactory extends Factory
     public function definition(): array
     {
         return [
-            'restaurant_id'    => Restaurant::factory(),
-            'table_id'         => Table::factory(),
-            'user_id'          => User::factory(),
+            'restaurant_id' => Restaurant::factory(),
+            'table_id' => Table::factory(),
+            'user_id' => User::factory(),
             'reservation_time' => now()->addDay()->format('Y-m-d H:i:s'),
-            'guests_count'     => fake()->numberBetween(1, 8),
-            'status'           => ReservationStatus::PENDING,
+            'guests_count' => fake()->numberBetween(1, 8),
+            'status' => ReservationStatus::PENDING,
         ];
     }
 

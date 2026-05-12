@@ -21,11 +21,17 @@ class OrderApiTest extends TestCase
     use RefreshDatabase;
 
     private Restaurant $restaurant;
+
     private User $waiter;
+
     private User $cashier;
+
     private User $chef;
+
     private User $guest;
+
     private Table $table;
+
     private MenuItem $menuItem;
 
     protected function setUp(): void
@@ -35,17 +41,17 @@ class OrderApiTest extends TestCase
         $this->restaurant = Restaurant::factory()->create();
 
         $this->waiter = User::factory()->create([
-            'role'          => 'waiter',
+            'role' => 'waiter',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
         $this->cashier = User::factory()->create([
-            'role'          => 'cashier',
+            'role' => 'cashier',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
         $this->chef = User::factory()->create([
-            'role'          => 'chef',
+            'role' => 'chef',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
@@ -53,12 +59,12 @@ class OrderApiTest extends TestCase
 
         $this->table = Table::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'status'        => 'free',
+            'status' => 'free',
         ]);
 
         $this->menuItem = MenuItem::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'price'         => 150.00,
+            'price' => 150.00,
         ]);
     }
 
@@ -95,8 +101,8 @@ class OrderApiTest extends TestCase
     {
         Order::factory()->count(2)->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->waiter->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->waiter->id,
         ]);
 
         $this->actingAs($this->waiter)
@@ -118,8 +124,8 @@ class OrderApiTest extends TestCase
     {
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->waiter->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->waiter->id,
         ]);
 
         $this->actingAs($this->waiter)
@@ -134,14 +140,14 @@ class OrderApiTest extends TestCase
     {
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->waiter->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->waiter->id,
         ]);
 
         $item = OrderItem::factory()->create([
-            'order_id'     => $order->id,
+            'order_id' => $order->id,
             'menu_item_id' => $this->menuItem->id,
-            'status'       => OrderItemStatus::PENDING,
+            'status' => OrderItemStatus::PENDING,
         ]);
 
         $this->actingAs($this->waiter)
@@ -157,17 +163,17 @@ class OrderApiTest extends TestCase
     {
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->waiter->id,
-            'total_amount'  => 300.00,
+            'table_id' => $this->table->id,
+            'user_id' => $this->waiter->id,
+            'total_amount' => 300.00,
         ]);
 
         OrderItem::factory()->create([
-            'order_id'     => $order->id,
+            'order_id' => $order->id,
             'menu_item_id' => $this->menuItem->id,
-            'quantity'     => 2,
-            'price'        => 150.00,
-            'status'       => OrderItemStatus::READY,
+            'quantity' => 2,
+            'price' => 150.00,
+            'status' => OrderItemStatus::READY,
         ]);
 
         $response = $this->actingAs($this->cashier)
@@ -188,8 +194,8 @@ class OrderApiTest extends TestCase
     {
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->waiter->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->waiter->id,
         ]);
 
         $this->actingAs($this->waiter)
@@ -201,8 +207,8 @@ class OrderApiTest extends TestCase
     {
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->guest->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->guest->id,
         ]);
 
         $this->actingAs($this->guest)
@@ -214,8 +220,8 @@ class OrderApiTest extends TestCase
     {
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->waiter->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->waiter->id,
         ]);
 
         $this->actingAs($this->chef)
@@ -229,8 +235,8 @@ class OrderApiTest extends TestCase
     {
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->waiter->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->waiter->id,
         ]);
 
         $this->actingAs($this->cashier)
@@ -245,8 +251,8 @@ class OrderApiTest extends TestCase
     {
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->waiter->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->waiter->id,
         ]);
 
         $this->actingAs($this->chef)
@@ -258,9 +264,9 @@ class OrderApiTest extends TestCase
     {
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->waiter->id,
-            'status'        => 'paid',
+            'table_id' => $this->table->id,
+            'user_id' => $this->waiter->id,
+            'status' => 'paid',
         ]);
 
         $this->actingAs($this->cashier)
@@ -276,8 +282,8 @@ class OrderApiTest extends TestCase
 
         $order = Order::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->guest->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->guest->id,
         ]);
 
         $this->actingAs($this->guest)

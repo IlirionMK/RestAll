@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Illuminate\Http\Request;
 
 #[OA\Tag(name: 'Auth', description: 'Authentication and authorization')]
 class GoogleAuthController extends Controller
@@ -52,13 +52,13 @@ class GoogleAuthController extends Controller
 
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 
-            return redirect()->away($frontendUrl . '/');
+            return redirect()->away($frontendUrl.'/');
         } catch (\Exception $e) {
-            \Log::error('Google Auth Error: ' . $e->getMessage());
+            \Log::error('Google Auth Error: '.$e->getMessage());
 
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 
-            return redirect()->away($frontendUrl . '/login?error=oauth_failed');
+            return redirect()->away($frontendUrl.'/login?error=oauth_failed');
         }
     }
 }

@@ -38,20 +38,20 @@ class MenuCategoryController extends Controller
                             properties: [
                                 new OA\Property(property: 'id', type: 'integer', example: 101),
                                 new OA\Property(property: 'name', type: 'string', example: 'Steak'),
-                                new OA\Property(property: 'price', type: 'number', format: 'float', example: 45.50)
+                                new OA\Property(property: 'price', type: 'number', format: 'float', example: 45.50),
                             ]
                         )
-                    )
+                    ),
                 ]
             )
         )
     )]
     public function index(Request $request): JsonResponse
     {
-        $query = MenuCategory::with(['items' => fn($q) => $q->where('is_available', true)])
+        $query = MenuCategory::with(['items' => fn ($q) => $q->where('is_available', true)])
             ->orderBy('sort_order');
 
-        if (!Auth::user()?->restaurant_id && $request->filled('restaurant_id')) {
+        if (! Auth::user()?->restaurant_id && $request->filled('restaurant_id')) {
             $query->withoutGlobalScope('restaurant')
                 ->where('restaurant_id', $request->integer('restaurant_id'));
         }
@@ -71,7 +71,7 @@ class MenuCategoryController extends Controller
             required: ['name'],
             properties: [
                 new OA\Property(property: 'name', type: 'string', example: 'Desserts'),
-                new OA\Property(property: 'sort_order', type: 'integer', example: 20)
+                new OA\Property(property: 'sort_order', type: 'integer', example: 20),
             ]
         )
     )]
@@ -82,7 +82,7 @@ class MenuCategoryController extends Controller
             properties: [
                 new OA\Property(property: 'id', type: 'integer', example: 2),
                 new OA\Property(property: 'name', type: 'string', example: 'Desserts'),
-                new OA\Property(property: 'sort_order', type: 'integer', example: 20)
+                new OA\Property(property: 'sort_order', type: 'integer', example: 20),
             ]
         )
     )]
@@ -112,7 +112,7 @@ class MenuCategoryController extends Controller
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'name', type: 'string', example: 'Updated Category Name'),
-                new OA\Property(property: 'sort_order', type: 'integer', example: 5)
+                new OA\Property(property: 'sort_order', type: 'integer', example: 5),
             ]
         )
     )]
@@ -123,7 +123,7 @@ class MenuCategoryController extends Controller
             properties: [
                 new OA\Property(property: 'id', type: 'integer', example: 1),
                 new OA\Property(property: 'name', type: 'string', example: 'Updated Category Name'),
-                new OA\Property(property: 'sort_order', type: 'integer', example: 5)
+                new OA\Property(property: 'sort_order', type: 'integer', example: 5),
             ]
         )
     )]
@@ -160,6 +160,7 @@ class MenuCategoryController extends Controller
     {
         $this->authorize('delete', $menuCategory);
         $menuCategory->delete();
+
         return response()->json(null, 204);
     }
 }

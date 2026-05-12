@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Restaurant;
-use App\Models\User;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
+use App\Models\Restaurant;
 use App\Models\Table;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $restaurant = Restaurant::create([
             'name' => 'RestAll Central',
-            'address' => 'Warsaw, Main St 1'
+            'address' => 'Warsaw, Main St 1',
         ]);
 
         User::create([
@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin User',
             'email' => 'admin@restall.com',
             'password' => Hash::make('password'),
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
 
         User::create([
@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'John Waiter',
             'email' => 'waiter@restall.com',
             'password' => Hash::make('password'),
-            'role' => 'waiter'
+            'role' => 'waiter',
         ]);
 
         User::create([
@@ -40,7 +40,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Chef Mario',
             'email' => 'chef@restall.com',
             'password' => Hash::make('password'),
-            'role' => 'chef'
+            'role' => 'chef',
         ]);
 
         $this->seedMenu($restaurant->id);
@@ -48,9 +48,9 @@ class DatabaseSeeder extends Seeder
         for ($i = 1; $i <= 8; $i++) {
             Table::create([
                 'restaurant_id' => $restaurant->id,
-                'number' => 'T-' . $i,
+                'number' => 'T-'.$i,
                 'capacity' => $i <= 4 ? 2 : 4,
-                'status' => 'free'
+                'status' => 'free',
             ]);
         }
     }

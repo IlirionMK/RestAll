@@ -14,7 +14,9 @@ class UserApiTest extends TestCase
     use RefreshDatabase;
 
     private Restaurant $restaurant;
+
     private User $admin;
+
     private User $waiter;
 
     protected function setUp(): void
@@ -24,12 +26,12 @@ class UserApiTest extends TestCase
         $this->restaurant = Restaurant::factory()->create();
 
         $this->admin = User::factory()->create([
-            'role'          => 'admin',
+            'role' => 'admin',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
         $this->waiter = User::factory()->create([
-            'role'          => 'waiter',
+            'role' => 'waiter',
             'restaurant_id' => $this->restaurant->id,
         ]);
     }
@@ -78,10 +80,10 @@ class UserApiTest extends TestCase
     {
         $this->actingAs($this->admin)
             ->postJson('/api/users', [
-                'name'     => 'New Chef',
-                'email'    => 'newchef@restall.com',
+                'name' => 'New Chef',
+                'email' => 'newchef@restall.com',
                 'password' => 'password123',
-                'role'     => 'chef',
+                'role' => 'chef',
             ])
             ->assertStatus(201);
 
@@ -92,10 +94,10 @@ class UserApiTest extends TestCase
     {
         $this->actingAs($this->waiter)
             ->postJson('/api/users', [
-                'name'     => 'New Chef',
-                'email'    => 'newchef@restall.com',
+                'name' => 'New Chef',
+                'email' => 'newchef@restall.com',
                 'password' => 'password123',
-                'role'     => 'chef',
+                'role' => 'chef',
             ])
             ->assertForbidden();
     }
@@ -128,7 +130,7 @@ class UserApiTest extends TestCase
     public function test_waiter_cannot_delete_user(): void
     {
         $chef = User::factory()->create([
-            'role'          => 'chef',
+            'role' => 'chef',
             'restaurant_id' => $this->restaurant->id,
         ]);
 

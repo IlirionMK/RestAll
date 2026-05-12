@@ -2,14 +2,13 @@
 
 namespace App\Actions\Order;
 
-use App\Models\Reservation;
 use App\Enums\ReservationStatus;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Reservation;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class GetUserOrderContextAction
 {
-
     public function execute(): array
     {
         $user = Auth::user();
@@ -18,12 +17,12 @@ class GetUserOrderContextAction
             ->where('status', ReservationStatus::CONFIRMED)
             ->whereBetween('reservation_time', [
                 Carbon::now()->subHours(2),
-                Carbon::now()->addHours(2)
+                Carbon::now()->addHours(2),
             ])
             ->with(['table', 'restaurant'])
             ->first();
 
-        if (!$activeReservation) {
+        if (! $activeReservation) {
             return [
                 'has_active_context' => false,
                 'reservation' => null,
@@ -38,7 +37,7 @@ class GetUserOrderContextAction
                 'table_number' => $activeReservation->table->number ?? $activeReservation->table_id,
                 'restaurant_id' => $activeReservation->restaurant_id,
                 'restaurant_name' => $activeReservation->restaurant->name,
-            ]
+            ],
         ];
     }
 }

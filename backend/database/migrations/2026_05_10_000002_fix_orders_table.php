@@ -24,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         if (DB::getDriverName() === 'pgsql') {
-            DB::statement("ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check");
+            DB::statement('ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check');
         }
 
         Schema::table('orders', function (Blueprint $table) {

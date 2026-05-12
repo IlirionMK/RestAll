@@ -13,7 +13,7 @@ use OpenApi\Attributes as OA;
     required: ['table_id'],
     properties: [
         new OA\Property(property: 'table_id', type: 'integer', example: 1),
-        new OA\Property(property: 'reservation_id', type: 'integer', nullable: true, example: 10)
+        new OA\Property(property: 'reservation_id', type: 'integer', nullable: true, example: 10),
     ]
 )]
 class StoreOrderRequest extends FormRequest

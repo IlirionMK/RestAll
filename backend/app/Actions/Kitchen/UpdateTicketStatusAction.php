@@ -12,10 +12,10 @@ use App\Models\OrderItem;
 class UpdateTicketStatusAction
 {
     private const array VALID_TRANSITIONS = [
-        'pending'    => ['preparing'],
-        'preparing'  => ['ready'],
-        'ready'      => ['delivered'],
-        'delivered'  => [],
+        'pending' => ['preparing'],
+        'preparing' => ['ready'],
+        'ready' => ['delivered'],
+        'delivered' => [],
     ];
 
     public function execute(OrderItem $orderItem, OrderItemStatus $newStatus): OrderItem

@@ -4,27 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Actions\Order\{
-    AddOrderItemsAction,
-    CreateOrderAction,
-    GetOrderDetailsAction,
-    GetUserOrderContextAction,
-    ListActiveOrdersAction,
-    PayOrderAction,
-    RemoveOrderItemAction,
-    RequestBillAction
-};
+use App\Actions\Order\AddOrderItemsAction;
+use App\Actions\Order\CreateOrderAction;
+use App\Actions\Order\GetOrderDetailsAction;
+use App\Actions\Order\GetUserOrderContextAction;
+use App\Actions\Order\ListActiveOrdersAction;
+use App\Actions\Order\PayOrderAction;
+use App\Actions\Order\RemoveOrderItemAction;
+use App\Actions\Order\RequestBillAction;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Order\{
-    AddOrderItemsRequest,
-    ListOrdersRequest,
-    PayOrderRequest,
-    RemoveOrderItemRequest,
-    ShowBillRequest,
-    ShowOrderRequest,
-    StoreOrderRequest,
-    RequestBillRequest
-};
+use App\Http\Requests\Order\AddOrderItemsRequest;
+use App\Http\Requests\Order\ListOrdersRequest;
+use App\Http\Requests\Order\PayOrderRequest;
+use App\Http\Requests\Order\RemoveOrderItemRequest;
+use App\Http\Requests\Order\RequestBillRequest;
+use App\Http\Requests\Order\ShowBillRequest;
+use App\Http\Requests\Order\ShowOrderRequest;
+use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Resources\OrderBillResource;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -55,8 +51,9 @@ class OrderController extends Controller
     public function index(ListOrdersRequest $request, ListActiveOrdersAction $action): JsonResponse
     {
         $userId = $request->user()->id;
+
         return response()->json(
-            Cache::remember("user_{$userId}_orders", 300, fn() => $action->execute()),
+            Cache::remember("user_{$userId}_orders", 300, fn () => $action->execute()),
             200
         );
     }
@@ -75,6 +72,7 @@ class OrderController extends Controller
             $request->user()->restaurant_id
         );
         Cache::forget("user_{$request->user()->id}_orders");
+
         return response()->json($order, 201);
     }
 
@@ -109,6 +107,7 @@ class OrderController extends Controller
     public function removeItem(OrderItem $orderItem, RemoveOrderItemRequest $request, RemoveOrderItemAction $action): JsonResponse
     {
         $action->execute($orderItem);
+
         return response()->json(null, 204);
     }
 
@@ -121,6 +120,7 @@ class OrderController extends Controller
     public function requestBill(Order $order, RequestBillRequest $request, RequestBillAction $action): JsonResponse
     {
         $result = $action->execute($order);
+
         return response()->json($result, 200);
     }
 
@@ -166,6 +166,7 @@ class OrderController extends Controller
     {
         $result = $action->execute($order);
         Cache::forget("user_{$order->user_id}_orders");
+
         return response()->json($result, 200);
     }
 }

@@ -25,7 +25,7 @@ class RestaurantController extends Controller
                 properties: [
                     new OA\Property(property: 'id', type: 'integer', example: 1),
                     new OA\Property(property: 'name', type: 'string', example: 'RestAll Premium'),
-                    new OA\Property(property: 'address', type: 'string', example: 'Main Avenue, 42')
+                    new OA\Property(property: 'address', type: 'string', example: 'Main Avenue, 42'),
                 ]
             )
         )

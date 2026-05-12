@@ -16,9 +16,13 @@ class MenuApiTest extends TestCase
     use RefreshDatabase;
 
     private Restaurant $restaurant;
+
     private User $admin;
+
     private User $waiter;
+
     private User $chef;
+
     private MenuCategory $category;
 
     protected function setUp(): void
@@ -28,17 +32,17 @@ class MenuApiTest extends TestCase
         $this->restaurant = Restaurant::factory()->create();
 
         $this->admin = User::factory()->create([
-            'role'          => 'admin',
+            'role' => 'admin',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
         $this->waiter = User::factory()->create([
-            'role'          => 'waiter',
+            'role' => 'waiter',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
         $this->chef = User::factory()->create([
-            'role'          => 'chef',
+            'role' => 'chef',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
@@ -52,9 +56,9 @@ class MenuApiTest extends TestCase
     public function test_anyone_can_view_menu_categories(): void
     {
         MenuItem::factory()->create([
-            'restaurant_id'    => $this->restaurant->id,
+            'restaurant_id' => $this->restaurant->id,
             'menu_category_id' => $this->category->id,
-            'is_available'     => true,
+            'is_available' => true,
         ]);
 
         $this->actingAs($this->admin)
@@ -66,15 +70,15 @@ class MenuApiTest extends TestCase
     public function test_categories_exclude_unavailable_items(): void
     {
         MenuItem::factory()->create([
-            'restaurant_id'    => $this->restaurant->id,
+            'restaurant_id' => $this->restaurant->id,
             'menu_category_id' => $this->category->id,
-            'is_available'     => true,
+            'is_available' => true,
         ]);
 
         MenuItem::factory()->create([
-            'restaurant_id'    => $this->restaurant->id,
+            'restaurant_id' => $this->restaurant->id,
             'menu_category_id' => $this->category->id,
-            'is_available'     => false,
+            'is_available' => false,
         ]);
 
         $response = $this->actingAs($this->admin)
@@ -91,9 +95,9 @@ class MenuApiTest extends TestCase
         $this->actingAs($this->admin)
             ->postJson('/api/menu/items', [
                 'menu_category_id' => $this->category->id,
-                'name'             => 'New Dish',
-                'price'            => 25.00,
-                'is_available'     => true,
+                'name' => 'New Dish',
+                'price' => 25.00,
+                'is_available' => true,
             ])
             ->assertStatus(201);
 
@@ -105,8 +109,8 @@ class MenuApiTest extends TestCase
         $this->actingAs($this->waiter)
             ->postJson('/api/menu/items', [
                 'menu_category_id' => $this->category->id,
-                'name'             => 'New Dish',
-                'price'            => 25.00,
+                'name' => 'New Dish',
+                'price' => 25.00,
             ])
             ->assertForbidden();
     }
@@ -116,8 +120,8 @@ class MenuApiTest extends TestCase
         $this->actingAs($this->chef)
             ->postJson('/api/menu/items', [
                 'menu_category_id' => $this->category->id,
-                'name'             => 'New Dish',
-                'price'            => 25.00,
+                'name' => 'New Dish',
+                'price' => 25.00,
             ])
             ->assertForbidden();
     }
@@ -127,7 +131,7 @@ class MenuApiTest extends TestCase
     public function test_admin_can_update_menu_item(): void
     {
         $item = MenuItem::factory()->create([
-            'restaurant_id'    => $this->restaurant->id,
+            'restaurant_id' => $this->restaurant->id,
             'menu_category_id' => $this->category->id,
         ]);
 
@@ -141,7 +145,7 @@ class MenuApiTest extends TestCase
     public function test_waiter_cannot_update_menu_item(): void
     {
         $item = MenuItem::factory()->create([
-            'restaurant_id'    => $this->restaurant->id,
+            'restaurant_id' => $this->restaurant->id,
             'menu_category_id' => $this->category->id,
         ]);
 
@@ -155,9 +159,9 @@ class MenuApiTest extends TestCase
     public function test_admin_can_toggle_item_availability(): void
     {
         $item = MenuItem::factory()->create([
-            'restaurant_id'    => $this->restaurant->id,
+            'restaurant_id' => $this->restaurant->id,
             'menu_category_id' => $this->category->id,
-            'is_available'     => true,
+            'is_available' => true,
         ]);
 
         $this->actingAs($this->admin)
@@ -170,9 +174,9 @@ class MenuApiTest extends TestCase
     public function test_waiter_can_toggle_item_availability(): void
     {
         $item = MenuItem::factory()->create([
-            'restaurant_id'    => $this->restaurant->id,
+            'restaurant_id' => $this->restaurant->id,
             'menu_category_id' => $this->category->id,
-            'is_available'     => true,
+            'is_available' => true,
         ]);
 
         $this->actingAs($this->waiter)
@@ -183,7 +187,7 @@ class MenuApiTest extends TestCase
     public function test_chef_cannot_toggle_item_availability(): void
     {
         $item = MenuItem::factory()->create([
-            'restaurant_id'    => $this->restaurant->id,
+            'restaurant_id' => $this->restaurant->id,
             'menu_category_id' => $this->category->id,
         ]);
 
@@ -197,7 +201,7 @@ class MenuApiTest extends TestCase
     public function test_admin_can_delete_menu_item(): void
     {
         $item = MenuItem::factory()->create([
-            'restaurant_id'    => $this->restaurant->id,
+            'restaurant_id' => $this->restaurant->id,
             'menu_category_id' => $this->category->id,
         ]);
 

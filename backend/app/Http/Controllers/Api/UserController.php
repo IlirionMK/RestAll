@@ -35,7 +35,7 @@ class UserController extends Controller
                 new OA\Property(property: 'name', type: 'string', example: 'John Doe'),
                 new OA\Property(property: 'email', type: 'string', example: 'john@example.com'),
                 new OA\Property(property: 'role', type: 'string', example: 'waiter'),
-                new OA\Property(property: 'restaurant_id', type: 'integer', example: 1)
+                new OA\Property(property: 'restaurant_id', type: 'integer', example: 1),
             ]
         )
     )]
@@ -56,7 +56,7 @@ class UserController extends Controller
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'name', type: 'string', example: 'John Smith'),
-                new OA\Property(property: 'phone', type: 'string', example: '+123456789')
+                new OA\Property(property: 'phone', type: 'string', example: '+123456789'),
             ]
         )
     )]
@@ -79,7 +79,7 @@ class UserController extends Controller
         required: true,
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'email', type: 'string', example: 'new_email@example.com')
+                new OA\Property(property: 'email', type: 'string', example: 'new_email@example.com'),
             ]
         )
     )]
@@ -125,7 +125,7 @@ class UserController extends Controller
                     new OA\Property(property: 'id', type: 'integer', example: 2),
                     new OA\Property(property: 'name', type: 'string', example: 'Jane Smith'),
                     new OA\Property(property: 'email', type: 'string', example: 'jane@example.com'),
-                    new OA\Property(property: 'role', type: 'string', example: 'chef')
+                    new OA\Property(property: 'role', type: 'string', example: 'chef'),
                 ]
             )
         )
@@ -151,7 +151,7 @@ class UserController extends Controller
                 new OA\Property(property: 'name', type: 'string', example: 'Mike Chef'),
                 new OA\Property(property: 'email', type: 'string', example: 'mike@example.com'),
                 new OA\Property(property: 'password', type: 'string', example: 'secret123'),
-                new OA\Property(property: 'role', type: 'string', example: 'chef')
+                new OA\Property(property: 'role', type: 'string', example: 'chef'),
             ]
         )
     )]
@@ -183,7 +183,7 @@ class UserController extends Controller
         content: new OA\JsonContent(
             required: ['role'],
             properties: [
-                new OA\Property(property: 'role', type: 'string', example: 'admin')
+                new OA\Property(property: 'role', type: 'string', example: 'admin'),
             ]
         )
     )]
@@ -216,6 +216,7 @@ class UserController extends Controller
     public function destroy(User $user, DeleteUserRequest $request): JsonResponse
     {
         $user->delete();
+
         return response()->json(null, 204);
     }
 }

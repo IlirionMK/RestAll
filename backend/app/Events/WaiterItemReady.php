@@ -36,10 +36,10 @@ class WaiterItemReady implements ShouldBroadcast
         $this->orderItem->loadMissing(['order.table']);
 
         return [
-            'order_id'     => $this->orderItem->order_id,
+            'order_id' => $this->orderItem->order_id,
             'table_number' => $this->orderItem->order->table?->number,
-            'item_name'    => $this->orderItem->name,
-            'quantity'     => $this->orderItem->quantity,
+            'item_name' => $this->orderItem->name,
+            'quantity' => $this->orderItem->quantity,
         ];
     }
 }

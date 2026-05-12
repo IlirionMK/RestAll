@@ -38,12 +38,12 @@ class KitchenTicketStatusUpdated implements ShouldBroadcast
         $this->orderItem->loadMissing(['order.table']);
 
         return [
-            'id'           => $this->orderItem->id,
-            'order_id'     => $this->orderItem->order_id,
+            'id' => $this->orderItem->id,
+            'order_id' => $this->orderItem->order_id,
             'table_number' => $this->orderItem->order->table?->number,
-            'name'         => $this->orderItem->name,
-            'quantity'     => $this->orderItem->quantity,
-            'status'       => $this->orderItem->status->value,
+            'name' => $this->orderItem->name,
+            'quantity' => $this->orderItem->quantity,
+            'status' => $this->orderItem->status->value,
         ];
     }
 }

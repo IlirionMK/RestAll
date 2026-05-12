@@ -68,7 +68,7 @@ class KitchenController extends Controller
         required: true,
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'status', type: 'string', enum: ['preparing', 'ready', 'delivered'], example: 'preparing')
+                new OA\Property(property: 'status', type: 'string', enum: ['preparing', 'ready', 'delivered'], example: 'preparing'),
             ]
         )
     )]

@@ -2,25 +2,23 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\GoogleAuthController;
+use App\Http\Controllers\Api\KitchenController;
+use App\Http\Controllers\Api\MenuCategoryController;
+use App\Http\Controllers\Api\MenuItemController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\RestaurantController;
+use App\Http\Controllers\Api\TableController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\{
-    AnalyticsController,
-    AuditLogController,
-    AuthController,
-    GoogleAuthController,
-    MenuItemController,
-    MenuCategoryController,
-    TableController,
-    UserController,
-    ReservationController,
-    OrderController,
-    KitchenController,
-    RestaurantController
-};
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
-use Laravel\Fortify\Http\Controllers\RegisteredUserController;
-use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
+use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
+use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [RegisteredUserController::class, 'store']);

@@ -11,6 +11,7 @@ return new class extends Migration
     {
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('ALTER TABLE audit_logs ALTER COLUMN restaurant_id DROP NOT NULL');
+
             return;
         }
 
@@ -23,6 +24,7 @@ return new class extends Migration
     {
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('ALTER TABLE audit_logs ALTER COLUMN restaurant_id SET NOT NULL');
+
             return;
         }
 

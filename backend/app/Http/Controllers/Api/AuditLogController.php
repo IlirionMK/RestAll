@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Audit\ListAuditLogsAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Audit\ListAuditLogsRequest;
-use App\Actions\Audit\ListAuditLogsAction;
 use Illuminate\Http\JsonResponse;
 use OpenApi\Attributes as OA;
 
@@ -35,7 +35,7 @@ class AuditLogController extends Controller
                     new OA\Property(property: 'user_id', type: 'integer', nullable: true, example: 2),
                     new OA\Property(property: 'action', type: 'string', example: 'order_created'),
                     new OA\Property(property: 'description', type: 'string', example: 'Order #15 created at Table #5'),
-                    new OA\Property(property: 'created_at', type: 'string', format: 'date-time', example: '2026-04-22T19:30:00Z')
+                    new OA\Property(property: 'created_at', type: 'string', format: 'date-time', example: '2026-04-22T19:30:00Z'),
                 ]
             )
         )

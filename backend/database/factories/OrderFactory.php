@@ -16,11 +16,11 @@ class OrderFactory extends Factory
     {
         return [
             'restaurant_id' => Restaurant::factory(),
-            'table_id'      => Table::factory(),
-            'user_id'       => User::factory(),
-            'status'        => OrderStatus::PENDING,
-            'total_amount'  => 0,
-            'is_takeaway'   => false,
+            'table_id' => Table::factory(),
+            'user_id' => User::factory(),
+            'status' => OrderStatus::PENDING,
+            'total_amount' => 0,
+            'is_takeaway' => false,
         ];
     }
 }

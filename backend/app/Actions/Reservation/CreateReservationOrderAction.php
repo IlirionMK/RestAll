@@ -33,7 +33,7 @@ class CreateReservationOrderAction
             'total_amount' => 0,
         ]);
 
-        if (!$isTakeaway) {
+        if (! $isTakeaway) {
             Table::where('id', $reservation->table_id)->update(['status' => TableStatus::OCCUPIED]);
         }
 

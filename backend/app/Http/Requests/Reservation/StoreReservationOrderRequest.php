@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'StoreReservationOrderRequest',
     properties: [
-        new OA\Property(property: 'is_takeaway', type: 'boolean', example: false)
+        new OA\Property(property: 'is_takeaway', type: 'boolean', example: false),
     ]
 )]
 class StoreReservationOrderRequest extends FormRequest

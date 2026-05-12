@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\ReservationStatus;
 use App\Actions\Table\UpdateTableStatusAction;
+use App\Enums\ReservationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Table\UpdateTableStatusRequest;
 use App\Models\Table;
@@ -45,7 +45,7 @@ class TableController extends Controller
                     new OA\Property(property: 'restaurant_id', type: 'integer', example: 1),
                     new OA\Property(property: 'number', type: 'string', example: 'T-1'),
                     new OA\Property(property: 'capacity', type: 'integer', example: 4),
-                    new OA\Property(property: 'status', type: 'string', example: 'free')
+                    new OA\Property(property: 'status', type: 'string', example: 'free'),
                 ]
             )
         )
@@ -55,7 +55,7 @@ class TableController extends Controller
     {
         $request->validate([
             'restaurant_id' => 'required|integer',
-            'reservation_time' => 'nullable|date_format:Y-m-d H:i:s'
+            'reservation_time' => 'nullable|date_format:Y-m-d H:i:s',
         ]);
 
         $query = Table::where('restaurant_id', $request->restaurant_id);
@@ -69,6 +69,7 @@ class TableController extends Controller
 
                 $table->status = $isBooked ? 'booked' : 'free';
             }
+
             return $table;
         });
 
@@ -91,7 +92,7 @@ class TableController extends Controller
                 new OA\Property(property: 'restaurant_id', type: 'integer', example: 1),
                 new OA\Property(property: 'number', type: 'string', example: 'T-1'),
                 new OA\Property(property: 'capacity', type: 'integer', example: 4),
-                new OA\Property(property: 'status', type: 'string', example: 'free')
+                new OA\Property(property: 'status', type: 'string', example: 'free'),
             ]
         )
     )]
@@ -122,7 +123,7 @@ class TableController extends Controller
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'id', type: 'integer', example: 1),
-                new OA\Property(property: 'status', type: 'string', example: 'cleaning')
+                new OA\Property(property: 'status', type: 'string', example: 'cleaning'),
             ]
         )
     )]
@@ -136,6 +137,7 @@ class TableController extends Controller
         UpdateTableStatusAction $action
     ): JsonResponse {
         $updatedTable = $action->execute($table, $request->validated()['status']);
+
         return response()->json($updatedTable, 200);
     }
 }

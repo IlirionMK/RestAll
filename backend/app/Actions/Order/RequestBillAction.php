@@ -22,7 +22,7 @@ class RequestBillAction
             model: $order,
             payload: [
                 'table_id' => $order->table_id,
-                'reservation_id' => $order->reservation_id
+                'reservation_id' => $order->reservation_id,
             ]
         ));
 

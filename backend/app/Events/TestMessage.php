@@ -12,9 +12,7 @@ class TestMessage implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public string $content)
-    {
-    }
+    public function __construct(public string $content) {}
 
     public function broadcastOn(): array
     {

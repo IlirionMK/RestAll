@@ -16,9 +16,9 @@ class GetAnalyticsSummaryAction
     public function execute(): array
     {
         return [
-            'revenue'      => $this->revenue(),
-            'orders'       => $this->orders(),
-            'top_items'    => $this->topItems(),
+            'revenue' => $this->revenue(),
+            'orders' => $this->orders(),
+            'top_items' => $this->topItems(),
             'reservations' => $this->reservations(),
         ];
     }
@@ -28,8 +28,8 @@ class GetAnalyticsSummaryAction
         $paid = fn () => Order::where('status', OrderStatus::PAID);
 
         return [
-            'today'      => (float) $paid()->whereDate('paid_at', Carbon::today())->sum('total_amount'),
-            'this_week'  => (float) $paid()->whereBetween('paid_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('total_amount'),
+            'today' => (float) $paid()->whereDate('paid_at', Carbon::today())->sum('total_amount'),
+            'this_week' => (float) $paid()->whereBetween('paid_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('total_amount'),
             'this_month' => (float) $paid()->whereMonth('paid_at', Carbon::now()->month)->whereYear('paid_at', Carbon::now()->year)->sum('total_amount'),
         ];
     }
@@ -39,9 +39,9 @@ class GetAnalyticsSummaryAction
         $paid = fn () => Order::where('status', OrderStatus::PAID);
 
         return [
-            'today'         => $paid()->whereDate('paid_at', Carbon::today())->count(),
-            'this_week'     => $paid()->whereBetween('paid_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count(),
-            'this_month'    => $paid()->whereMonth('paid_at', Carbon::now()->month)->whereYear('paid_at', Carbon::now()->year)->count(),
+            'today' => $paid()->whereDate('paid_at', Carbon::today())->count(),
+            'this_week' => $paid()->whereBetween('paid_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count(),
+            'this_month' => $paid()->whereMonth('paid_at', Carbon::now()->month)->whereYear('paid_at', Carbon::now()->year)->count(),
             'average_value' => (float) round((float) $paid()->avg('total_amount'), 2),
         ];
     }
@@ -59,9 +59,9 @@ class GetAnalyticsSummaryAction
             ->limit(5)
             ->get()
             ->map(fn ($item) => [
-                'name'          => $item->name,
+                'name' => $item->name,
                 'quantity_sold' => (int) $item->quantity_sold,
-                'revenue'       => (float) round($item->revenue, 2),
+                'revenue' => (float) round($item->revenue, 2),
             ])
             ->toArray();
     }
@@ -69,7 +69,7 @@ class GetAnalyticsSummaryAction
     private function reservations(): array
     {
         return [
-            'today'     => Reservation::whereDate('reservation_time', Carbon::today())->count(),
+            'today' => Reservation::whereDate('reservation_time', Carbon::today())->count(),
             'this_week' => Reservation::whereBetween('reservation_time', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count(),
         ];
     }

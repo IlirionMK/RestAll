@@ -83,6 +83,7 @@ class ReservationController extends Controller
     {
         $this->authorize('delete', $reservation);
         $action->execute($reservation);
+
         return response()->json(null, 204);
     }
 

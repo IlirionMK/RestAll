@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Actions\Auth\RefreshTokenAction;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -22,7 +22,7 @@ class AuthController extends Controller
         description: 'Token refreshed successfully',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'token', type: 'string', example: '1|laravel_sanctum_token_abc123...')
+                new OA\Property(property: 'token', type: 'string', example: '1|laravel_sanctum_token_abc123...'),
             ]
         )
     )]
@@ -42,7 +42,7 @@ class AuthController extends Controller
         description: 'Successful redirect or token generation',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'url', type: 'string', example: 'https://accounts.google.com/o/oauth2/auth...')
+                new OA\Property(property: 'url', type: 'string', example: 'https://accounts.google.com/o/oauth2/auth...'),
             ]
         )
     )]
@@ -62,7 +62,7 @@ class AuthController extends Controller
         required: true,
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'code', type: 'string', example: '123456')
+                new OA\Property(property: 'code', type: 'string', example: '123456'),
             ]
         )
     )]
@@ -71,7 +71,7 @@ class AuthController extends Controller
         description: '2FA verified successfully',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'message', type: 'string', example: '2FA verified')
+                new OA\Property(property: 'message', type: 'string', example: '2FA verified'),
             ]
         )
     )]

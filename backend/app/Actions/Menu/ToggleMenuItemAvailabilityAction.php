@@ -8,7 +8,8 @@ class ToggleMenuItemAvailabilityAction
 {
     public function execute(MenuItem $item): MenuItem
     {
-        $item->update(['is_available' => !$item->is_available]);
+        $item->update(['is_available' => ! $item->is_available]);
+
         return $item;
     }
 }

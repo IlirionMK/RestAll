@@ -39,9 +39,9 @@ class MenuItemController extends Controller
                         type: 'object',
                         properties: [
                             new OA\Property(property: 'id', type: 'integer', example: 2),
-                            new OA\Property(property: 'name', type: 'string', example: 'Salads')
+                            new OA\Property(property: 'name', type: 'string', example: 'Salads'),
                         ]
-                    )
+                    ),
                 ]
             )
         )
@@ -66,7 +66,7 @@ class MenuItemController extends Controller
                 new OA\Property(property: 'name', type: 'string', example: 'Greek Salad'),
                 new OA\Property(property: 'description', type: 'string', example: 'Fresh vegetables with feta cheese'),
                 new OA\Property(property: 'price', type: 'number', format: 'float', example: 10.00),
-                new OA\Property(property: 'is_available', type: 'boolean', example: true)
+                new OA\Property(property: 'is_available', type: 'boolean', example: true),
             ]
         )
     )]
@@ -102,7 +102,7 @@ class MenuItemController extends Controller
                 new OA\Property(property: 'menu_category_id', type: 'integer', example: 2),
                 new OA\Property(property: 'name', type: 'string', example: 'Greek Salad Updated'),
                 new OA\Property(property: 'description', type: 'string', example: 'Fresh vegetables with extra feta'),
-                new OA\Property(property: 'price', type: 'number', format: 'float', example: 11.50)
+                new OA\Property(property: 'price', type: 'number', format: 'float', example: 11.50),
             ]
         )
     )]
@@ -164,6 +164,7 @@ class MenuItemController extends Controller
     public function destroy(MenuItem $menuItem): JsonResponse
     {
         $menuItem->delete();
+
         return response()->json(null, 204);
     }
 }

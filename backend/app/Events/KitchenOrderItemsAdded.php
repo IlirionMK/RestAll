@@ -36,15 +36,15 @@ class KitchenOrderItemsAdded implements ShouldBroadcast
         $this->order->loadMissing(['items', 'table']);
 
         return [
-            'order_id'     => $this->order->id,
+            'order_id' => $this->order->id,
             'table_number' => $this->order->table?->number,
-            'items'        => $this->order->items
+            'items' => $this->order->items
                 ->map(fn ($item) => [
-                    'id'       => $item->id,
-                    'name'     => $item->name,
+                    'id' => $item->id,
+                    'name' => $item->name,
                     'quantity' => $item->quantity,
-                    'comment'  => $item->comment,
-                    'status'   => $item->status->value,
+                    'comment' => $item->comment,
+                    'status' => $item->status->value,
                 ]),
         ];
     }

@@ -9,6 +9,7 @@ class UpdateMenuCategoryAction
     public function execute(MenuCategory $category, array $data): MenuCategory
     {
         $category->update($data);
+
         return $category;
     }
 }

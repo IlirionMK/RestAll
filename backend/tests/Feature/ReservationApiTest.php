@@ -16,9 +16,13 @@ class ReservationApiTest extends TestCase
     use RefreshDatabase;
 
     private Restaurant $restaurant;
+
     private User $admin;
+
     private User $waiter;
+
     private User $guest;
+
     private Table $table;
 
     protected function setUp(): void
@@ -28,12 +32,12 @@ class ReservationApiTest extends TestCase
         $this->restaurant = Restaurant::factory()->create();
 
         $this->admin = User::factory()->create([
-            'role'          => 'admin',
+            'role' => 'admin',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
         $this->waiter = User::factory()->create([
-            'role'          => 'waiter',
+            'role' => 'waiter',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
@@ -46,16 +50,16 @@ class ReservationApiTest extends TestCase
     {
         $this->actingAs($this->guest)
             ->postJson('/api/reservations', [
-                'restaurant_id'    => $this->restaurant->id,
-                'table_id'         => $this->table->id,
+                'restaurant_id' => $this->restaurant->id,
+                'table_id' => $this->table->id,
                 'reservation_time' => now()->addDay()->format('Y-m-d H:i:s'),
-                'guests_count'     => 2,
+                'guests_count' => 2,
             ])
             ->assertStatus(201);
 
         $this->assertDatabaseHas('reservations', [
             'table_id' => $this->table->id,
-            'user_id'  => $this->guest->id,
+            'user_id' => $this->guest->id,
         ]);
     }
 
@@ -63,7 +67,7 @@ class ReservationApiTest extends TestCase
     {
         Reservation::factory()->count(3)->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
+            'table_id' => $this->table->id,
         ]);
 
         $this->actingAs($this->waiter)
@@ -76,15 +80,15 @@ class ReservationApiTest extends TestCase
     {
         Reservation::factory()->count(2)->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->guest->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->guest->id,
         ]);
 
         $other = User::factory()->create(['role' => 'guest']);
         Reservation::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $other->id,
+            'table_id' => $this->table->id,
+            'user_id' => $other->id,
         ]);
 
         $this->actingAs($this->guest)
@@ -97,8 +101,8 @@ class ReservationApiTest extends TestCase
     {
         $reservation = Reservation::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->guest->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->guest->id,
         ]);
 
         $this->actingAs($this->guest)
@@ -110,8 +114,8 @@ class ReservationApiTest extends TestCase
     {
         $reservation = Reservation::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->guest->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->guest->id,
         ]);
 
         $this->actingAs($this->admin)
@@ -123,8 +127,8 @@ class ReservationApiTest extends TestCase
     {
         $reservation = Reservation::factory()->create([
             'restaurant_id' => $this->restaurant->id,
-            'table_id'      => $this->table->id,
-            'user_id'       => $this->guest->id,
+            'table_id' => $this->table->id,
+            'user_id' => $this->guest->id,
         ]);
 
         $otherGuest = User::factory()->create(['role' => 'guest']);

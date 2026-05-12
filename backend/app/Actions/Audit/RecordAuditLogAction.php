@@ -3,8 +3,8 @@
 namespace App\Actions\Audit;
 
 use App\Models\AuditLog;
-use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 class RecordAuditLogAction
 {

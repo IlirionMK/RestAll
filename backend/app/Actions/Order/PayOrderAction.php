@@ -26,7 +26,7 @@ class PayOrderAction
             model: $order,
             payload: [
                 'amount' => $order->total_amount,
-                'reservation_id' => $order->reservation_id
+                'reservation_id' => $order->reservation_id,
             ]
         ));
 

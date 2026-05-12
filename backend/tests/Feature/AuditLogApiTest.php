@@ -14,7 +14,9 @@ class AuditLogApiTest extends TestCase
     use RefreshDatabase;
 
     private Restaurant $restaurant;
+
     private User $admin;
+
     private User $waiter;
 
     protected function setUp(): void
@@ -24,12 +26,12 @@ class AuditLogApiTest extends TestCase
         $this->restaurant = Restaurant::factory()->create();
 
         $this->admin = User::factory()->create([
-            'role'          => 'admin',
+            'role' => 'admin',
             'restaurant_id' => $this->restaurant->id,
         ]);
 
         $this->waiter = User::factory()->create([
-            'role'          => 'waiter',
+            'role' => 'waiter',
             'restaurant_id' => $this->restaurant->id,
         ]);
     }

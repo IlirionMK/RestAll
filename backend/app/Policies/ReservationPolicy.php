@@ -52,7 +52,7 @@ class ReservationPolicy
 
     public function createOrder(User $user, Reservation $reservation): bool
     {
-        if (!in_array($reservation->status, [ReservationStatus::PENDING, ReservationStatus::CONFIRMED])) {
+        if (! in_array($reservation->status, [ReservationStatus::PENDING, ReservationStatus::CONFIRMED])) {
             return false;
         }
 

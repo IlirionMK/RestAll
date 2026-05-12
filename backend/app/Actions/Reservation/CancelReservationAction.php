@@ -2,8 +2,8 @@
 
 namespace App\Actions\Reservation;
 
-use App\Models\Reservation;
 use App\Enums\ReservationStatus;
+use App\Models\Reservation;
 use Illuminate\Validation\ValidationException;
 
 class CancelReservationAction
@@ -12,12 +12,12 @@ class CancelReservationAction
     {
         if ($reservation->status === ReservationStatus::COMPLETED) {
             throw ValidationException::withMessages([
-                'status' => ['Cannot cancel a completed reservation.']
+                'status' => ['Cannot cancel a completed reservation.'],
             ]);
         }
 
         $reservation->update([
-            'status' => ReservationStatus::CANCELLED
+            'status' => ReservationStatus::CANCELLED,
         ]);
     }
 }

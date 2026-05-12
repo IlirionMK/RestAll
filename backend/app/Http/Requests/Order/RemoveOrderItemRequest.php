@@ -10,6 +10,7 @@ class RemoveOrderItemRequest extends FormRequest
     public function authorize(): bool
     {
         $orderItem = $this->route('orderItem');
+
         return $this->user()->can('delete', $orderItem) && $orderItem->status === OrderItemStatus::PENDING;
     }
 
