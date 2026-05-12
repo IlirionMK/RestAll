@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\{
+    AnalyticsController,
     AuditLogController,
     AuthController,
     GoogleAuthController,
@@ -94,4 +95,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/logs', [AuditLogController::class, 'index']);
+
+    Route::prefix('analytics')->group(function () {
+        Route::get('/summary', [AnalyticsController::class, 'summary']);
+    });
 });
