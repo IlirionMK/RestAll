@@ -3,6 +3,7 @@
 namespace App\Actions\Order;
 
 use App\Enums\OrderItemStatus;
+use App\Events\KitchenOrderItemsAdded;
 use App\Events\UserActionPerformed;
 use App\Models\MenuItem;
 use App\Models\Order;
@@ -31,6 +32,8 @@ class AddOrderItemsAction
             model: $order,
             payload: ['items_count' => count($items)]
         ));
+
+        broadcast(new KitchenOrderItemsAdded($order->fresh(['items', 'table'])));
 
         return $order;
     }

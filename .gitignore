@@ -39,6 +39,9 @@ Homestead.json
 # IDEs and Editors
 .idea/
 .vscode/
+
+# Claude Code
+.claude/settings.local.json
 *.swp
 *.swo
 .phpactor.json
