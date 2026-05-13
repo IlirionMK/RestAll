@@ -59,9 +59,14 @@ Thumbs.db
 ehthumbs.db
 $RECYCLE.BIN/
 
-# Flutter / Dart (Mobile & Desktop)
+# Flutter / Dart (Mobile)
 .dart_tool/
-build/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
+mobile/build/
+
+# C# / .NET (Desktop)
+.vs/
+desktop/**/bin/
+desktop/**/obj/

@@ -1,0 +1,98 @@
+<Window x:Class="RestAll.Desktop.App.Views.MenuView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RestAll - Menu" 
+        Height="600" 
+        Width="800"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="{DynamicResource MenuTitle}" 
+                   FontSize="28" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,20"/>
+
+        <Button Grid.Row="1" 
+                Content="{DynamicResource LoadMenuButton}" 
+                Height="35" 
+                Width="150" 
+                HorizontalAlignment="Left"
+                Command="{Binding LoadMenuCommand}"
+                Margin="0,0,0,20"/>
+
+        <TextBlock Grid.Row="1" 
+                   Text="{Binding StatusMessage}" 
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"
+                   Margin="0,0,0,20"/>
+
+        <ScrollViewer Grid.Row="2">
+            <ItemsControl ItemsSource="{Binding Categories}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Gray" 
+                                BorderThickness="1" 
+                                Padding="10" 
+                                Margin="0,0,0,20">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Name}" 
+                                           FontSize="20" 
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,10"/>
+                                <ItemsControl ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="LightGray" 
+                                                    Padding="10" 
+                                                    Margin="0,0,0,10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding Name}" 
+                                                                   FontSize="16" 
+                                                                   FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding Description}" 
+                                                                   FontSize="14" 
+                                                                   TextWrapping="Wrap"
+                                                                   Margin="0,5,0,0"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" 
+                                                                HorizontalAlignment="Right">
+                                                        <TextBlock Text="{Binding Price, StringFormat=C}" 
+                                                                   FontSize="18" 
+                                                                   FontWeight="Bold"/>
+                                                        <TextBlock FontSize="12"
+                                                                   Margin="0,5,0,0">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Text" Value="{DynamicResource NotAvailable}" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsAvailable}" Value="True">
+                                                                            <Setter Property="Text" Value="{DynamicResource Available}" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</Window>
