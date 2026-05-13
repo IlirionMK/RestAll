@@ -120,7 +120,7 @@ class UserApiTest extends TestCase
             ->deleteJson("/api/users/{$this->waiter->id}")
             ->assertNoContent();
 
-        $this->assertDatabaseMissing('users', ['id' => $this->waiter->id, 'deleted_at' => null]);
+        $this->assertDatabaseMissing('users', ['id' => $this->waiter->id]);
     }
 
     public function test_waiter_cannot_delete_user(): void
