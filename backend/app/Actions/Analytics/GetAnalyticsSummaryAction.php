@@ -61,7 +61,7 @@ class GetAnalyticsSummaryAction
             ->map(fn ($item) => [
                 'name' => $item->name,
                 'quantity_sold' => (int) $item->quantity_sold,
-                'revenue' => (float) round($item->revenue, 2),
+                'revenue' => (float) round((float) $item->revenue, 2),
             ])
             ->toArray();
     }
