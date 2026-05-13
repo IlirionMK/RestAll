@@ -17,8 +17,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/RestAll
-            git pull origin main
-            sudo docker compose exec php composer install --no-dev --optimize-autoloader
-            sudo docker compose exec php php artisan migrate --force
-            sudo docker compose restart php queue reverb
+            cd ~/RestAll && git pull origin main
+            sudo docker compose -f ~/RestAll/docker-compose.yml exec php composer install --no-dev --optimize-autoloader
+            sudo docker compose -f ~/RestAll/docker-compose.yml exec php php artisan migrate --force
+            sudo docker compose -f ~/RestAll/docker-compose.yml restart php queue reverb
