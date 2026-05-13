@@ -63,7 +63,6 @@ class KitchenApiTest extends TestCase
         ], $attrs));
     }
 
-
     public function test_chef_sees_pending_and_preparing_tickets(): void
     {
         $pending = $this->makeItem();
@@ -106,7 +105,6 @@ class KitchenApiTest extends TestCase
     {
         $this->getJson('/api/kitchen/tickets')->assertUnauthorized();
     }
-
 
     public function test_chef_can_advance_ticket_status(): void
     {
@@ -177,7 +175,6 @@ class KitchenApiTest extends TestCase
             ->assertForbidden();
     }
 
-
     public function test_waiter_notified_when_item_becomes_ready(): void
     {
         Event::fake([KitchenTicketStatusUpdated::class, WaiterItemReady::class]);
@@ -205,7 +202,6 @@ class KitchenApiTest extends TestCase
 
         Event::assertNotDispatched(WaiterItemReady::class);
     }
-
 
     public function test_adding_order_items_broadcasts_to_kitchen(): void
     {

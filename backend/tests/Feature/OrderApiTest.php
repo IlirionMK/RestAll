@@ -69,7 +69,6 @@ class OrderApiTest extends TestCase
         ]);
     }
 
-
     public function test_complete_order_lifecycle(): void
     {
         $orderResponse = $this->actingAs($this->waiter)
@@ -95,7 +94,6 @@ class OrderApiTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['user_id' => $this->waiter->id, 'action' => 'order.paid']);
     }
 
-
     public function test_waiter_can_list_orders(): void
     {
         Order::factory()->count(2)->create([
@@ -117,7 +115,6 @@ class OrderApiTest extends TestCase
             ->assertForbidden();
     }
 
-
     public function test_waiter_can_view_order(): void
     {
         $order = Order::factory()->create([
@@ -131,7 +128,6 @@ class OrderApiTest extends TestCase
             ->assertOk()
             ->assertJsonFragment(['id' => $order->id]);
     }
-
 
     public function test_waiter_can_remove_order_item(): void
     {
@@ -153,7 +149,6 @@ class OrderApiTest extends TestCase
 
         $this->assertDatabaseMissing('order_items', ['id' => $item->id]);
     }
-
 
     public function test_cashier_can_view_bill(): void
     {
@@ -225,7 +220,6 @@ class OrderApiTest extends TestCase
             ->assertOk();
     }
 
-
     public function test_cashier_can_pay_order(): void
     {
         $order = Order::factory()->create([
@@ -269,7 +263,6 @@ class OrderApiTest extends TestCase
             ->assertForbidden();
     }
 
-
     public function test_request_bill_broadcasts_event(): void
     {
         Event::fake([OrderBillingRequested::class]);
@@ -286,7 +279,6 @@ class OrderApiTest extends TestCase
 
         Event::assertDispatched(OrderBillingRequested::class);
     }
-
 
     public function test_guest_can_create_order_with_confirmed_reservation(): void
     {

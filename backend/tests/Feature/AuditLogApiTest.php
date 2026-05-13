@@ -119,7 +119,7 @@ class AuditLogApiTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->admin)
-            ->getJson('/api/logs?date_from=' . Carbon::today()->toDateString() . '&date_to=' . Carbon::today()->toDateString())
+            ->getJson('/api/logs?date_from='.Carbon::today()->toDateString().'&date_to='.Carbon::today()->toDateString())
             ->assertOk();
 
         $this->assertCount(1, $response->json('data'));

@@ -51,7 +51,6 @@ class MenuApiTest extends TestCase
         ]);
     }
 
-
     public function test_unauthenticated_can_view_menu_categories_by_restaurant(): void
     {
         MenuItem::factory()->create([
@@ -60,7 +59,7 @@ class MenuApiTest extends TestCase
             'is_available' => true,
         ]);
 
-        $this->getJson('/api/menu/categories?restaurant_id=' . $this->restaurant->id)
+        $this->getJson('/api/menu/categories?restaurant_id='.$this->restaurant->id)
             ->assertOk()
             ->assertJsonCount(1);
     }
@@ -100,7 +99,6 @@ class MenuApiTest extends TestCase
         $this->assertCount(1, $response->json('0.items'));
     }
 
-
     public function test_admin_can_create_menu_item(): void
     {
         $this->actingAs($this->admin)
@@ -137,7 +135,6 @@ class MenuApiTest extends TestCase
             ->assertForbidden();
     }
 
-
     public function test_admin_can_update_menu_item(): void
     {
         $item = MenuItem::factory()->create([
@@ -163,7 +160,6 @@ class MenuApiTest extends TestCase
             ->putJson("/api/menu/items/{$item->id}", ['name' => 'Hacked', 'price' => 1.00])
             ->assertForbidden();
     }
-
 
     public function test_admin_can_toggle_item_availability(): void
     {
@@ -204,7 +200,6 @@ class MenuApiTest extends TestCase
             ->patchJson("/api/menu/items/{$item->id}/availability")
             ->assertForbidden();
     }
-
 
     public function test_admin_can_delete_menu_item(): void
     {

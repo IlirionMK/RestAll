@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class AuditLog extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'user_id',
         'restaurant_id',
