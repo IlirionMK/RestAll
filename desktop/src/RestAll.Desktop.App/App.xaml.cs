@@ -72,9 +72,6 @@ public partial class App : Application
         services.AddMemoryCache();
         services.AddSingleton<ICacheService, MemoryCacheService>();
         
-        // Register Realtime service
-        services.AddSingleton<IRealtimeService, WebSocketRealtimeService>();
-        
         // Register Offline service
         services.AddSingleton<IOfflineStorage, SqliteOfflineStorage>();
         
@@ -84,6 +81,12 @@ public partial class App : Application
         // Register Infrastructure services
         var apiOptions = configuration.GetSection("Api").Get<RestAllApiOptions>() ?? new RestAllApiOptions { BaseUrl = "http://localhost:8000/api" };
         services.AddSingleton(apiOptions);
+        var realtimeOptions = configuration.GetSection("Realtime").Get<RealtimeOptions>() ?? new RealtimeOptions();
+        services.AddSingleton(realtimeOptions);
+        services.AddHttpClient("broadcasting-auth", client => ConfigureApiClient(client, apiOptions))
+            .AddHttpMessageHandler<CsrfHeaderHandler>()
+            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+        services.AddSingleton<IRealtimeService, WebSocketRealtimeService>();
         services.AddSingleton<IErrorHandler, ErrorHandler>();
         
         // Register Session storage
@@ -141,7 +144,14 @@ public partial class App : Application
         // Initialize authentication after services are built
         var authService = _serviceProvider.GetRequiredService<IAuthenticateUserUseCase>();
         authService.InitializeAsync();
-        
+
+        if (authService.State == AuthFlowState.Authenticated)
+        {
+            var mainWindow = CreateMainWindow();
+            mainWindow.Show();
+            return;
+        }
+
         var loginView = CreateLoginView();
         loginView.Show();
     }

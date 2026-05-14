@@ -1,10 +1,12 @@
 using RestAll.Desktop.Core.Orders;
+using RestAll.Desktop.Core.Realtime;
 
 namespace RestAll.Desktop.App.ViewModels;
 
 public class OrdersViewModel : CancelableViewModelBase
 {
     private readonly IManageOrdersUseCase _ordersUseCase;
+    private readonly IRealtimeService _realtimeService;
     
     private List<Order> _orders = new();
     private string _newOrderTableId = "";
@@ -15,9 +17,14 @@ public class OrdersViewModel : CancelableViewModelBase
     private string _removeItemOrderId = "";
     private string _removeItemOrderItemId = "";
 
-    public OrdersViewModel(IManageOrdersUseCase ordersUseCase)
+    public OrdersViewModel(IManageOrdersUseCase ordersUseCase, IRealtimeService realtimeService)
     {
         _ordersUseCase = ordersUseCase;
+        _realtimeService = realtimeService;
+        _realtimeService.OrderBillingRequested += OnRealtimeRefreshRequested;
+        _realtimeService.KitchenOrderItemsAdded += OnRealtimeRefreshRequested;
+        _realtimeService.KitchenTicketStatusUpdated += OnRealtimeRefreshRequested;
+        _realtimeService.ItemReady += OnRealtimeRefreshRequested;
         
         LoadOrdersCommand = new AsyncRelayCommand(LoadOrdersAsync, () => !IsLoading);
         PayOrderCommand = new AsyncRelayCommand<int>(PayOrderAsync, _ => !IsLoading);
@@ -116,6 +123,16 @@ public class OrdersViewModel : CancelableViewModelBase
         {
             IsLoading = false;
         }
+    }
+
+    private void OnRealtimeRefreshRequested(object? sender, EventArgs e)
+    {
+        if (IsLoading)
+        {
+            return;
+        }
+
+        _ = LoadOrdersAsync();
     }
 
     private async Task PayOrderAsync(int orderId)
@@ -237,5 +254,13 @@ public class OrdersViewModel : CancelableViewModelBase
         {
             StatusMessage = $"Error removing item: {ex.Message}";
         }
+    }
+
+    protected override void OnDispose()
+    {
+        _realtimeService.OrderBillingRequested -= OnRealtimeRefreshRequested;
+        _realtimeService.KitchenOrderItemsAdded -= OnRealtimeRefreshRequested;
+        _realtimeService.KitchenTicketStatusUpdated -= OnRealtimeRefreshRequested;
+        _realtimeService.ItemReady -= OnRealtimeRefreshRequested;
     }
 }

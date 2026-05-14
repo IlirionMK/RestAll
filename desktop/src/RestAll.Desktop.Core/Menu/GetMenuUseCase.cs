@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using RestAll.Desktop.Core.Cache;
+using RestAll.Desktop.Core.Offline;
 
 namespace RestAll.Desktop.Core.Menu;
 
@@ -13,12 +14,14 @@ public sealed class GetMenuUseCase : IGetMenuUseCase
 {
     private readonly IMenuGateway _gateway;
     private readonly ICacheService _cache;
+    private readonly IOfflineStorage _offline;
     private readonly ILogger<GetMenuUseCase> _logger;
 
-    public GetMenuUseCase(IMenuGateway gateway, ICacheService cache, ILogger<GetMenuUseCase> logger)
+    public GetMenuUseCase(IMenuGateway gateway, ICacheService cache, IOfflineStorage offline, ILogger<GetMenuUseCase> logger)
     {
         _gateway = gateway;
         _cache = cache;
+        _offline = offline;
         _logger = logger;
     }
 
@@ -37,13 +40,35 @@ public sealed class GetMenuUseCase : IGetMenuUseCase
 
             _logger.LogInformation("Cache MISS for {CacheKey} - fetching from API", cacheKey);
             var categories = await _gateway.GetCategoriesAsync(cancellationToken);
-            
+
+            // try saving to offline storage (best-effort)
+            try
+            {
+                await _offline.SaveMenuCategoriesAsync(categories, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to save menu categories to offline storage");
+            }
+
             await _cache.SetAsync(cacheKey, categories, TimeSpan.FromMinutes(15), cancellationToken);
             return categories;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching menu categories");
+            _logger.LogError(ex, "Error fetching menu categories - trying offline storage");
+            try
+            {
+                if (await _offline.HasDataAsync(cancellationToken))
+                {
+                    return await _offline.GetMenuCategoriesAsync(cancellationToken);
+                }
+            }
+            catch (Exception iex)
+            {
+                _logger.LogDebug(iex, "Error reading from offline storage");
+            }
+
             return new List<MenuCategory>();
         }
     }
@@ -63,13 +88,34 @@ public sealed class GetMenuUseCase : IGetMenuUseCase
 
             _logger.LogInformation("Cache MISS for {CacheKey} - fetching from API", cacheKey);
             var items = await _gateway.GetItemsAsync(cancellationToken);
-            
+
+            try
+            {
+                await _offline.SaveMenuItemsAsync(items, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to save menu items to offline storage");
+            }
+
             await _cache.SetAsync(cacheKey, items, TimeSpan.FromMinutes(15), cancellationToken);
             return items;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching menu items");
+            _logger.LogError(ex, "Error fetching menu items - trying offline storage");
+            try
+            {
+                if (await _offline.HasDataAsync(cancellationToken))
+                {
+                    return await _offline.GetMenuItemsAsync(cancellationToken);
+                }
+            }
+            catch (Exception iex)
+            {
+                _logger.LogDebug(iex, "Error reading menu items from offline storage");
+            }
+
             return new List<MenuItem>();
         }
     }

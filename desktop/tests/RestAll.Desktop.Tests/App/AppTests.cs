@@ -9,6 +9,7 @@ using RestAll.Desktop.Core.Kitchen;
 using RestAll.Desktop.Core.Menu;
 using RestAll.Desktop.Core.Orders;
 using RestAll.Desktop.Core.Tables;
+using RestAll.Desktop.Core.Realtime;
 using RestAll.Desktop.Infrastructure.Auth;
 using RestAll.Desktop.Infrastructure.Cache;
 using RestAll.Desktop.Infrastructure.Kitchen;
@@ -34,6 +35,12 @@ public class AppTests
         // Register Cache service
         services.AddMemoryCache();
         services.AddSingleton<ICacheService, MemoryCacheService>();
+        services.AddSingleton<RestAll.Desktop.Core.Offline.IOfflineStorage>(_ => Mock.Of<RestAll.Desktop.Core.Offline.IOfflineStorage>());
+        var realtimeServiceMock = new Mock<IRealtimeService>();
+        realtimeServiceMock.Setup(s => s.ConnectAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        realtimeServiceMock.Setup(s => s.DisconnectAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        realtimeServiceMock.Setup(s => s.IsConnectedAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        services.AddSingleton(realtimeServiceMock.Object);
         
         // Register Core services
         services.AddTransient<IAuthenticateUserUseCase, AuthenticateUserUseCase>();
@@ -101,6 +108,12 @@ public class AppTests
         // Register Cache service
         services.AddMemoryCache();
         services.AddSingleton<ICacheService, MemoryCacheService>();
+        services.AddSingleton<RestAll.Desktop.Core.Offline.IOfflineStorage>(_ => Mock.Of<RestAll.Desktop.Core.Offline.IOfflineStorage>());
+        var realtimeServiceMock = new Mock<IRealtimeService>();
+        realtimeServiceMock.Setup(s => s.ConnectAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        realtimeServiceMock.Setup(s => s.DisconnectAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        realtimeServiceMock.Setup(s => s.IsConnectedAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        services.AddSingleton(realtimeServiceMock.Object);
         
         // Register Core services
         services.AddTransient<IAuthenticateUserUseCase, AuthenticateUserUseCase>();
@@ -150,6 +163,7 @@ public class AppTests
         // Register Cache service
         services.AddMemoryCache();
         services.AddSingleton<ICacheService, MemoryCacheService>();
+        services.AddSingleton<RestAll.Desktop.Core.Offline.IOfflineStorage>(_ => Mock.Of<RestAll.Desktop.Core.Offline.IOfflineStorage>());
         
         services.AddTransient<IAuthenticateUserUseCase, AuthenticateUserUseCase>();
         services.AddTransient<IGetMenuUseCase, GetMenuUseCase>();

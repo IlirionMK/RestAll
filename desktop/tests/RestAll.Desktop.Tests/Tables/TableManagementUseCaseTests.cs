@@ -11,11 +11,19 @@ namespace RestAll.Desktop.Tests.Tables;
 public class TableManagementUseCaseTests
 {
 	private readonly Mock<ITableGateway> _mockGateway;
+	private readonly Mock<RestAll.Desktop.Core.Auth.IManageProfileUseCase> _mockProfile;
 	private readonly TableManagementUseCase _useCase;
 
 	public TableManagementUseCaseTests()
 	{
 		_mockGateway = new Mock<ITableGateway>();
+		_mockProfile = new Mock<RestAll.Desktop.Core.Auth.IManageProfileUseCase>();
+		
+		// Default profile returns a restaurant id = 1
+		_mockProfile.Setup(p => p.GetProfileAsync(It.IsAny<CancellationToken>()))
+			.ReturnsAsync(new RestAll.Desktop.Core.Auth.UserProfile(1, "Test", "test@example.com", "user", 1));
+
+		_useCase = new TableManagementUseCase(_mockGateway.Object, _mockProfile.Object);
 	}
 
 	[Fact]
@@ -28,6 +36,7 @@ public class TableManagementUseCaseTests
 		};
 
 		_mockGateway
+			.Setup(g => g.GetTablesAsync(1, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(expectedTables);
 
 		var result = await _useCase.GetTablesAsync(CancellationToken.None);

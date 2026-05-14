@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Moq;
 using RestAll.Desktop.Core.Orders;
+using RestAll.Desktop.Core.Realtime;
 using RestAll.Desktop.App.ViewModels;
 using Xunit;
 
@@ -9,12 +10,14 @@ namespace RestAll.Desktop.Tests.ViewModels;
 public class OrdersViewModelTests
 {
     private readonly Mock<IManageOrdersUseCase> _mockUseCase;
+    private readonly Mock<IRealtimeService> _mockRealtime;
     private readonly OrdersViewModel _viewModel;
 
     public OrdersViewModelTests()
     {
         _mockUseCase = new Mock<IManageOrdersUseCase>();
-        _viewModel = new OrdersViewModel(_mockUseCase.Object);
+        _mockRealtime = new Mock<IRealtimeService>();
+        _viewModel = new OrdersViewModel(_mockUseCase.Object, _mockRealtime.Object);
     }
 
     [Fact]

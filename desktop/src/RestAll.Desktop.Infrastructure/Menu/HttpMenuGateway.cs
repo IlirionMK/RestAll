@@ -48,12 +48,47 @@ public sealed class HttpMenuGateway : IMenuGateway
             }
 
             var categories = new List<MenuCategory>();
+            var rejectedCategories = 0;
+            var rejectedItemsTotal = 0;
+            var sampleRejectedItems = new List<string>();
+
+            var globalReasonCodes = new HashSet<string>();
             foreach (var element in data.EnumerateArray())
             {
-                var category = ParseCategory(element);
+                var category = ParseCategory(element, out var rejectedInCategory, out var rejectedExamples, out var rejectedReasonCodes);
                 if (category is not null)
                 {
                     categories.Add(category);
+                    rejectedItemsTotal += rejectedInCategory;
+                    foreach (var ex in rejectedExamples)
+                    {
+                        if (sampleRejectedItems.Count < 5)
+                        {
+                            sampleRejectedItems.Add(ex.Length > 300 ? ex.Substring(0, 300) : ex);
+                        }
+                    }
+                    foreach (var rc in rejectedReasonCodes)
+                    {
+                        globalReasonCodes.Add(rc);
+                    }
+                }
+                else
+                {
+                    rejectedCategories++;
+                }
+            }
+
+            if (rejectedCategories > 0 || rejectedItemsTotal > 0)
+            {
+                // Log concise warning with reason codes; full samples go to Debug to avoid noisy/large logs in higher environments
+                var reasonCodesSummary = string.Join(',', globalReasonCodes);
+                var evt = new EventId(1001, "MenuParseRejected");
+                _logger.LogWarning(evt, "Menu parsing: {CategoryRejected} categories rejected, {ItemRejected} items rejected. ReasonCodes: {ReasonCodes}",
+                    rejectedCategories, rejectedItemsTotal, reasonCodesSummary);
+
+                if (sampleRejectedItems.Count > 0)
+                {
+                    _logger.LogDebug(evt, "Menu parsing samples (truncated): {Samples}", string.Join(" || ", sampleRejectedItems));
                 }
             }
 
@@ -82,8 +117,12 @@ public sealed class HttpMenuGateway : IMenuGateway
         }
     }
 
-    private MenuCategory? ParseCategory(JsonElement element)
+    private MenuCategory? ParseCategory(JsonElement element, out int rejectedItemCount, out List<string> rejectedExamples, out List<string> rejectedReasonCodes)
     {
+        rejectedItemCount = 0;
+        rejectedExamples = new List<string>();
+        rejectedReasonCodes = new List<string>();
+
         if (!JsonParserHelper.TryGetIntProperty(element, "id", out var id) ||
             !JsonParserHelper.TryGetStringProperty(element, "name", out var name) ||
             !JsonParserHelper.TryGetIntProperty(element, "sort_order", out var sortOrder))
@@ -96,10 +135,20 @@ public sealed class HttpMenuGateway : IMenuGateway
         {
             foreach (var itemElement in itemsElement.EnumerateArray())
             {
-                var item = ParseItem(itemElement);
-                if (item is not null)
+                if (TryParseItem(itemElement, out var item, out var reason))
                 {
-                    items.Add(item);
+                    if (item is not null) items.Add(item);
+                }
+                else
+                {
+                    rejectedItemCount++;
+                    var reasonCode = GetReasonCode(reason);
+                    if (!rejectedReasonCodes.Contains(reasonCode)) rejectedReasonCodes.Add(reasonCode);
+                    if (rejectedExamples.Count < 5)
+                    {
+                        var raw = itemElement.GetRawText();
+                        rejectedExamples.Add($"Reason: {reason}; Raw: { (raw.Length > 300 ? raw.Substring(0, 300) : raw) }");
+                    }
                 }
             }
         }
@@ -107,22 +156,78 @@ public sealed class HttpMenuGateway : IMenuGateway
         return new MenuCategory(id, name ?? string.Empty, sortOrder, items);
     }
 
-    private MenuItem? ParseItem(JsonElement element)
+    private bool TryParseItem(JsonElement element, out MenuItem? item, out string? reason)
     {
-        if (!JsonParserHelper.TryGetIntProperty(element, "id", out var id) ||
-            !JsonParserHelper.TryGetStringProperty(element, "name", out var name) ||
-            !JsonParserHelper.TryGetDecimalProperty(element, "price", out var price) ||
-            (!JsonParserHelper.TryGetBoolProperty(element, "is_available", out var isAvailable) &&
-             !JsonParserHelper.TryGetBoolProperty(element, "available", out isAvailable)))
+        item = null;
+        reason = null;
+
+        // id
+        if (!element.TryGetProperty("id", out var idProp))
         {
-            return null;
+            reason = "missing id";
+            return false;
         }
+        if (!JsonParserHelper.TryGetIntProperty(element, "id", out var id))
+        {
+            reason = "id wrong type";
+            return false;
+        }
+
+        // name
+        if (!element.TryGetProperty("name", out var nameProp))
+        {
+            reason = "missing name";
+            return false;
+        }
+        if (!JsonParserHelper.TryGetStringProperty(element, "name", out var name))
+        {
+            reason = "name wrong type or empty";
+            return false;
+        }
+
+        // price
+        if (!element.TryGetProperty("price", out var priceProp))
+        {
+            reason = "missing price";
+            return false;
+        }
+        if (!JsonParserHelper.TryGetDecimalProperty(element, "price", out var price))
+        {
+            var raw = priceProp.ValueKind == JsonValueKind.String ? priceProp.GetString() : priceProp.GetRawText();
+            reason = $"price parse error or wrong type (raw: {raw})";
+            return false;
+        }
+
+        // availability
+        var hasIsAvailable = JsonParserHelper.TryGetBoolProperty(element, "is_available", out var isAvailable1);
+        var hasAvailable = JsonParserHelper.TryGetBoolProperty(element, "available", out var isAvailable2);
+        if (!hasIsAvailable && !hasAvailable)
+        {
+            reason = "missing availability flag";
+            return false;
+        }
+        var isAvailable = hasIsAvailable ? isAvailable1 : isAvailable2;
 
         var description = JsonParserHelper.TryGetStringProperty(element, "description", out var desc) ? desc ?? string.Empty : string.Empty;
         var photoUrl = JsonParserHelper.TryGetStringProperty(element, "photo_url", out var photo) ? photo : null;
         var menuCategoryId = JsonParserHelper.TryGetIntProperty(element, "menu_category_id", out var catId) ? catId : 0;
         var categoryName = JsonParserHelper.TryGetNestedStringProperty(element, "category", "name", out var catName) ? catName : null;
 
-        return new MenuItem(id, name ?? string.Empty, description, price, photoUrl, isAvailable, menuCategoryId, categoryName);
+        item = new MenuItem(id, name ?? string.Empty, description, price, photoUrl, isAvailable, menuCategoryId, categoryName);
+        return true;
+    }
+
+    private static string GetReasonCode(string? reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason)) return "UNKNOWN";
+        reason = reason.ToLowerInvariant();
+        if (reason.Contains("missing id")) return "MISSING_ID";
+        if (reason.Contains("missing name")) return "MISSING_NAME";
+        if (reason.Contains("missing price")) return "MISSING_PRICE";
+        if (reason.Contains("price parse")) return "PRICE_PARSE_ERROR";
+        if (reason.Contains("availability")) return "MISSING_AVAILABILITY";
+        if (reason.Contains("id wrong type")) return "ID_WRONG_TYPE";
+        if (reason.Contains("name wrong")) return "NAME_WRONG_TYPE";
+        return "OTHER_PARSE_ERROR";
     }
 }
