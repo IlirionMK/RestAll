@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Moq;
 using RestAll.Desktop.Core.Auth;
+using RestAll.Desktop.Core.Realtime;
 using RestAll.Desktop.App.ViewModels;
 using Xunit;
 
@@ -9,12 +10,17 @@ namespace RestAll.Desktop.Tests.ViewModels;
 public class MainWindowViewModelTests
 {
     private readonly Mock<IAuthenticateUserUseCase> _mockAuthUseCase;
+    private readonly Mock<IRealtimeService> _mockRealtimeService;
     private readonly MainWindowViewModel _viewModel;
 
     public MainWindowViewModelTests()
     {
         _mockAuthUseCase = new Mock<IAuthenticateUserUseCase>();
-        _viewModel = new MainWindowViewModel(_mockAuthUseCase.Object);
+        _mockRealtimeService = new Mock<IRealtimeService>();
+        _mockRealtimeService.Setup(s => s.ConnectAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _mockRealtimeService.Setup(s => s.DisconnectAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _mockRealtimeService.Setup(s => s.IsConnectedAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _viewModel = new MainWindowViewModel(_mockAuthUseCase.Object, _mockRealtimeService.Object);
     }
 
     [Fact]

@@ -1,12 +1,17 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 using RestAll.Desktop.App;
 using RestAll.Desktop.Core.Auth;
+using RestAll.Desktop.Core.Cache;
 using RestAll.Desktop.Core.Kitchen;
 using RestAll.Desktop.Core.Menu;
 using RestAll.Desktop.Core.Orders;
 using RestAll.Desktop.Core.Tables;
+using RestAll.Desktop.Core.Realtime;
 using RestAll.Desktop.Infrastructure.Auth;
+using RestAll.Desktop.Infrastructure.Cache;
 using RestAll.Desktop.Infrastructure.Kitchen;
 using RestAll.Desktop.Infrastructure.Menu;
 using RestAll.Desktop.Infrastructure.Orders;
@@ -24,9 +29,23 @@ public class AppTests
         // Arrange
         var services = new ServiceCollection();
         
+        // Register logging
+        services.AddLogging();
+        
+        // Register Cache service
+        services.AddMemoryCache();
+        services.AddSingleton<ICacheService, MemoryCacheService>();
+        services.AddSingleton<RestAll.Desktop.Core.Offline.IOfflineStorage>(_ => Mock.Of<RestAll.Desktop.Core.Offline.IOfflineStorage>());
+        var realtimeServiceMock = new Mock<IRealtimeService>();
+        realtimeServiceMock.Setup(s => s.ConnectAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        realtimeServiceMock.Setup(s => s.DisconnectAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        realtimeServiceMock.Setup(s => s.IsConnectedAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        services.AddSingleton(realtimeServiceMock.Object);
+        
         // Register Core services
         services.AddTransient<IAuthenticateUserUseCase, AuthenticateUserUseCase>();
         services.AddTransient<IGetMenuUseCase, GetMenuUseCase>();
+        services.AddSingleton<IManageProfileUseCase>(_ => Mock.Of<IManageProfileUseCase>());
         services.AddTransient<ITableManagementUseCase, TableManagementUseCase>();
         services.AddTransient<IManageOrdersUseCase, ManageOrdersUseCase>();
         services.AddTransient<IManageKitchenUseCase, ManageKitchenUseCase>();
@@ -34,6 +53,7 @@ public class AppTests
         // Register Infrastructure services
         services.AddSingleton<RestAllApiOptions>();
         services.AddHttpClient<IAuthGateway, HttpAuthGateway>();
+        services.AddSingleton<ISessionStorage, SqliteSessionStorage>();
         services.AddHttpClient<IMenuGateway, HttpMenuGateway>();
         services.AddHttpClient<ITableGateway, HttpTableGateway>();
         services.AddHttpClient<IOrderGateway, HttpOrderGateway>();
@@ -54,8 +74,13 @@ public class AppTests
     {
         // Arrange
         var services = new ServiceCollection();
+        
+        // Register logging
+        services.AddLogging();
+        
         services.AddSingleton<RestAllApiOptions>();
         services.AddHttpClient<IAuthGateway, HttpAuthGateway>();
+        services.AddSingleton<ISessionStorage, SqliteSessionStorage>();
         services.AddHttpClient<IMenuGateway, HttpMenuGateway>();
         services.AddHttpClient<ITableGateway, HttpTableGateway>();
         services.AddHttpClient<IOrderGateway, HttpOrderGateway>();
@@ -77,9 +102,23 @@ public class AppTests
         // Arrange
         var services = new ServiceCollection();
         
+        // Register logging
+        services.AddLogging();
+        
+        // Register Cache service
+        services.AddMemoryCache();
+        services.AddSingleton<ICacheService, MemoryCacheService>();
+        services.AddSingleton<RestAll.Desktop.Core.Offline.IOfflineStorage>(_ => Mock.Of<RestAll.Desktop.Core.Offline.IOfflineStorage>());
+        var realtimeServiceMock = new Mock<IRealtimeService>();
+        realtimeServiceMock.Setup(s => s.ConnectAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        realtimeServiceMock.Setup(s => s.DisconnectAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        realtimeServiceMock.Setup(s => s.IsConnectedAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        services.AddSingleton(realtimeServiceMock.Object);
+        
         // Register Core services
         services.AddTransient<IAuthenticateUserUseCase, AuthenticateUserUseCase>();
         services.AddTransient<IGetMenuUseCase, GetMenuUseCase>();
+        services.AddSingleton<IManageProfileUseCase>(_ => Mock.Of<IManageProfileUseCase>());
         services.AddTransient<ITableManagementUseCase, TableManagementUseCase>();
         services.AddTransient<IManageOrdersUseCase, ManageOrdersUseCase>();
         services.AddTransient<IManageKitchenUseCase, ManageKitchenUseCase>();
@@ -87,6 +126,7 @@ public class AppTests
         // Register Infrastructure services
         services.AddSingleton<RestAllApiOptions>();
         services.AddHttpClient<IAuthGateway, HttpAuthGateway>();
+        services.AddSingleton<ISessionStorage, SqliteSessionStorage>();
         services.AddHttpClient<IMenuGateway, HttpMenuGateway>();
         services.AddHttpClient<ITableGateway, HttpTableGateway>();
         services.AddHttpClient<IOrderGateway, HttpOrderGateway>();
@@ -117,13 +157,23 @@ public class AppTests
         // Arrange
         var services = new ServiceCollection();
         
+        // Register logging
+        services.AddLogging();
+        
+        // Register Cache service
+        services.AddMemoryCache();
+        services.AddSingleton<ICacheService, MemoryCacheService>();
+        services.AddSingleton<RestAll.Desktop.Core.Offline.IOfflineStorage>(_ => Mock.Of<RestAll.Desktop.Core.Offline.IOfflineStorage>());
+        
         services.AddTransient<IAuthenticateUserUseCase, AuthenticateUserUseCase>();
         services.AddTransient<IGetMenuUseCase, GetMenuUseCase>();
+        services.AddSingleton<IManageProfileUseCase>(_ => Mock.Of<IManageProfileUseCase>());
         services.AddTransient<ITableManagementUseCase, TableManagementUseCase>();
         services.AddTransient<IManageOrdersUseCase, ManageOrdersUseCase>();
         services.AddTransient<IManageKitchenUseCase, ManageKitchenUseCase>();
         services.AddSingleton<RestAllApiOptions>();
         services.AddHttpClient<IAuthGateway, HttpAuthGateway>();
+        services.AddSingleton<ISessionStorage, SqliteSessionStorage>();
         services.AddHttpClient<IMenuGateway, HttpMenuGateway>();
         services.AddHttpClient<ITableGateway, HttpTableGateway>();
         services.AddHttpClient<IOrderGateway, HttpOrderGateway>();

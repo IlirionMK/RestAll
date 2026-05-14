@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using RestAll.Desktop.Core.Tables;
 using RestAll.Desktop.Infrastructure.Auth;
 using RestAll.Desktop.Infrastructure.Tables;
@@ -42,10 +44,11 @@ public class HttpTableGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpTableGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpTableGateway>>();
+        var gateway = new HttpTableGateway(httpClient, _options, logger.Object);
 
         // Act
-        var result = await gateway.GetTablesAsync(CancellationToken.None);
+        var result = await gateway.GetTablesAsync(1, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -58,10 +61,11 @@ public class HttpTableGatewayTests
         var response = new HttpResponseMessage(HttpStatusCode.NotFound);
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpTableGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpTableGateway>>();
+        var gateway = new HttpTableGateway(httpClient, _options, logger.Object);
 
         // Act
-        var result = await gateway.GetTablesAsync(CancellationToken.None);
+        var result = await gateway.GetTablesAsync(1, CancellationToken.None);
 
         // Assert
         result.Should().BeEmpty();
@@ -84,7 +88,8 @@ public class HttpTableGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpTableGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpTableGateway>>();
+        var gateway = new HttpTableGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.UpdateTableStatusAsync(1, TableStatus.Occupied, CancellationToken.None);
@@ -100,7 +105,8 @@ public class HttpTableGatewayTests
         var response = new HttpResponseMessage(HttpStatusCode.NotFound);
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpTableGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpTableGateway>>();
+        var gateway = new HttpTableGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.UpdateTableStatusAsync(1, TableStatus.Occupied, CancellationToken.None);

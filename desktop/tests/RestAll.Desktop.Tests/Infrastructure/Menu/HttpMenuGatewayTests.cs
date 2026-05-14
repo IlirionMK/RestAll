@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using RestAll.Desktop.Core.Menu;
 using RestAll.Desktop.Infrastructure.Auth;
 using RestAll.Desktop.Infrastructure.Menu;
@@ -42,7 +44,8 @@ public class HttpMenuGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpMenuGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpMenuGateway>>();
+        var gateway = new HttpMenuGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.GetCategoriesAsync(CancellationToken.None);
@@ -62,7 +65,8 @@ public class HttpMenuGatewayTests
         var response = new HttpResponseMessage(HttpStatusCode.NotFound);
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpMenuGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpMenuGateway>>();
+        var gateway = new HttpMenuGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.GetCategoriesAsync(CancellationToken.None);
@@ -78,7 +82,8 @@ public class HttpMenuGatewayTests
         var exception = new HttpRequestException("Network error");
         var handler = new MockHttpMessageHandler(exception);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpMenuGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpMenuGateway>>();
+        var gateway = new HttpMenuGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.GetCategoriesAsync(CancellationToken.None);
@@ -95,27 +100,40 @@ public class HttpMenuGatewayTests
             [
                 {
                     "id": 1,
-                    "name": "Burger",
-                    "description": "Delicious burger",
-                    "price": 15.99,
-                    "photo_url": null,
-                    "is_available": true,
-                    "menu_category_id": 1,
-                    "category": {
-                        "name": "Main Course"
-                    }
+                    "name": "Main Course",
+                    "sort_order": 1,
+                    "items": [
+                        {
+                            "id": 1,
+                            "name": "Burger",
+                            "description": "Delicious burger",
+                            "price": 15.99,
+                            "photo_url": null,
+                            "is_available": true,
+                            "menu_category_id": 1,
+                            "category": {
+                                "name": "Main Course"
+                            }
+                        },
+                        {
+                            "id": 2,
+                            "name": "Fries",
+                            "description": "Crispy fries",
+                            "price": 5.99,
+                            "photo_url": null,
+                            "is_available": true,
+                            "menu_category_id": 1,
+                            "category": {
+                                "name": "Main Course"
+                            }
+                        }
+                    ]
                 },
                 {
                     "id": 2,
-                    "name": "Fries",
-                    "description": "Crispy fries",
-                    "price": 5.99,
-                    "photo_url": null,
-                    "is_available": true,
-                    "menu_category_id": 1,
-                    "category": {
-                        "name": "Appetizers"
-                    }
+                    "name": "Appetizers",
+                    "sort_order": 2,
+                    "items": []
                 }
             ]
             """;
@@ -127,7 +145,8 @@ public class HttpMenuGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpMenuGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpMenuGateway>>();
+        var gateway = new HttpMenuGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.GetItemsAsync(CancellationToken.None);
@@ -148,7 +167,8 @@ public class HttpMenuGatewayTests
         var response = new HttpResponseMessage(HttpStatusCode.NotFound);
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpMenuGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpMenuGateway>>();
+        var gateway = new HttpMenuGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.GetItemsAsync(CancellationToken.None);

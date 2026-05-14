@@ -1,17 +1,23 @@
 using RestAll.Desktop.Core.Kitchen;
 using RestAll.Desktop.Core.Orders;
+using RestAll.Desktop.Core.Realtime;
 
 namespace RestAll.Desktop.App.ViewModels;
 
 public class KitchenViewModel : CancelableViewModelBase
 {
     private readonly IManageKitchenUseCase _kitchenUseCase;
+    private readonly IRealtimeService _realtimeService;
     
     private List<KitchenTicket> _tickets = new();
 
-    public KitchenViewModel(IManageKitchenUseCase kitchenUseCase)
+    public KitchenViewModel(IManageKitchenUseCase kitchenUseCase, IRealtimeService realtimeService)
     {
         _kitchenUseCase = kitchenUseCase;
+        _realtimeService = realtimeService;
+        _realtimeService.KitchenOrderItemsAdded += OnRealtimeRefreshRequested;
+        _realtimeService.KitchenTicketStatusUpdated += OnRealtimeRefreshRequested;
+        _realtimeService.ItemReady += OnRealtimeRefreshRequested;
         
         LoadTicketsCommand = new AsyncRelayCommand(LoadTicketsAsync, () => !IsLoading);
         UpdateTicketStatusCommand = new AsyncRelayCommand<int>(ticketId => UpdateTicketStatusAsync(ticketId, OrderItemStatus.Preparing), _ => !IsLoading);
@@ -56,6 +62,16 @@ public class KitchenViewModel : CancelableViewModelBase
         }
     }
 
+    private void OnRealtimeRefreshRequested(object? sender, EventArgs e)
+    {
+        if (IsLoading)
+        {
+            return;
+        }
+
+        _ = LoadTicketsAsync();
+    }
+
     private async Task UpdateTicketStatusAsync(int ticketId, OrderItemStatus status)
     {
         try
@@ -76,5 +92,12 @@ public class KitchenViewModel : CancelableViewModelBase
         {
             StatusMessage = $"Error updating ticket: {ex.Message}";
         }
+    }
+
+    protected override void OnDispose()
+    {
+        _realtimeService.KitchenOrderItemsAdded -= OnRealtimeRefreshRequested;
+        _realtimeService.KitchenTicketStatusUpdated -= OnRealtimeRefreshRequested;
+        _realtimeService.ItemReady -= OnRealtimeRefreshRequested;
     }
 }

@@ -43,6 +43,29 @@ public partial class MainWindow : Window
         kitchenView.Show();
     }
 
+    private void OpenReservations_Click(object sender, RoutedEventArgs e)
+    {
+        var reservationsView = ((App)Application.Current).CreateReservationsView();
+        reservationsView.Closed += (s, args) => ((CancelableViewModelBase)reservationsView.DataContext).Dispose();
+        reservationsView.Show();
+    }
+
+    private void OpenProfile_Click(object sender, RoutedEventArgs e)
+    {
+        var profileView = ((App)Application.Current).CreateProfileView();
+        profileView.Closed += (s, args) => ((CancelableViewModelBase)profileView.DataContext).Dispose();
+        profileView.Show();
+    }
+
+    private async void Logout_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.LogoutCommand.ExecuteAsync();
+        Close();
+        
+        var loginView = ((App)Application.Current).CreateLoginView();
+        loginView.Show();
+    }
+
     private void OnClosed(object? sender, EventArgs e)
     {
         _viewModel.Dispose();

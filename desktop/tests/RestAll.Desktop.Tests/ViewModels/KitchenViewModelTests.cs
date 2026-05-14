@@ -2,6 +2,7 @@ using FluentAssertions;
 using Moq;
 using RestAll.Desktop.Core.Kitchen;
 using RestAll.Desktop.Core.Orders;
+using RestAll.Desktop.Core.Realtime;
 using RestAll.Desktop.App.ViewModels;
 using Xunit;
 
@@ -10,12 +11,14 @@ namespace RestAll.Desktop.Tests.ViewModels;
 public class KitchenViewModelTests
 {
     private readonly Mock<IManageKitchenUseCase> _mockUseCase;
+    private readonly Mock<IRealtimeService> _mockRealtime;
     private readonly KitchenViewModel _viewModel;
 
     public KitchenViewModelTests()
     {
         _mockUseCase = new Mock<IManageKitchenUseCase>();
-        _viewModel = new KitchenViewModel(_mockUseCase.Object);
+        _mockRealtime = new Mock<IRealtimeService>();
+        _viewModel = new KitchenViewModel(_mockUseCase.Object, _mockRealtime.Object);
     }
 
     [Fact]

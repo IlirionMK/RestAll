@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using RestAll.Desktop.Core.Auth;
 using RestAll.Desktop.Infrastructure.Json;
 
@@ -9,12 +10,14 @@ public sealed class HttpAuthGateway : IAuthGateway
 {
     private readonly HttpClient _httpClient;
     private readonly RestAllApiOptions _options;
+    private readonly ILogger<HttpAuthGateway> _logger;
     private string? _pendingLoginEmail;
 
-    public HttpAuthGateway(HttpClient httpClient, RestAllApiOptions options)
+    public HttpAuthGateway(HttpClient httpClient, RestAllApiOptions options, ILogger<HttpAuthGateway> logger)
     {
         _httpClient = httpClient;
         _options = options;
+        _logger = logger;
     }
 
     public async Task<AuthResult> LoginAsync(string email, string password, CancellationToken cancellationToken)
@@ -35,8 +38,25 @@ public sealed class HttpAuthGateway : IAuthGateway
                 "application/json"
             );
 
-            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/auth/login", content, cancellationToken);
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+             var response = await _httpClient.PostAsync($"{_options.BaseUrl}/auth/login", content, cancellationToken);
+             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+             
+             // Log response headers, especially Set-Cookie
+             var setCookieHeaders = response.Headers.Where(h => h.Key.Equals("Set-Cookie", StringComparison.OrdinalIgnoreCase)).ToList();
+             if (setCookieHeaders.Any())
+             {
+                 foreach (var cookieHeader in setCookieHeaders)
+                 {
+                     _logger.LogInformation("Set-Cookie header: {Cookie}", cookieHeader.Value.FirstOrDefault() ?? "");
+                 }
+             }
+             else
+             {
+                 _logger.LogWarning("No Set-Cookie headers in login response");
+             }
+             
+             _logger.LogInformation("Login response: HTTP {StatusCode}, Content: {ContentLength} bytes", 
+                 response.StatusCode, responseContent.Length);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Accepted)
             {
@@ -56,6 +76,9 @@ public sealed class HttpAuthGateway : IAuthGateway
             if (response.IsSuccessStatusCode)
             {
                 var data = DeserializeObject(responseContent);
+                
+                _logger.LogInformation("Login response data: {Data}", responseContent);
+                
                 if (data is not null && JsonParserHelper.TryGetBoolProperty(data.Value, "two_factor", out var requiresTwoFactor))
                 {
                     if (requiresTwoFactor)
@@ -71,9 +94,26 @@ public sealed class HttpAuthGateway : IAuthGateway
                         );
                     }
 
+                    // Try to extract user from login response directly
+                    if (data.Value.TryGetProperty("user", out var userElement))
+                    {
+                        if (JsonParserHelper.TryGetStringProperty(userElement, "name", out var directedName) &&
+                            JsonParserHelper.TryGetStringProperty(userElement, "role", out var directedRole))
+                        {
+                            _logger.LogInformation("Login successful with user info in response: {Name} ({Role})", directedName, directedRole);
+                            return new AuthResult(
+                                AuthFlowState.Authenticated,
+                                "Zalogowano pomyślnie.",
+                                UserSession.FromProfile(directedName!, directedRole!)
+                            );
+                        }
+                    }
+
+                    // Fallback: try to load from /users/me
                     var sessionFromProfile = await LoadCurrentUserSessionAsync(cancellationToken);
                     if (sessionFromProfile is not null)
                     {
+                        _logger.LogInformation("Login successful, user info loaded from /users/me");
                         return new AuthResult(
                             AuthFlowState.Authenticated,
                             "Zalogowano pomyślnie.",
@@ -84,6 +124,7 @@ public sealed class HttpAuthGateway : IAuthGateway
                     var fallbackLoginSession = BuildFallbackSession(_pendingLoginEmail);
                     if (fallbackLoginSession is not null)
                     {
+                        _logger.LogWarning("Login successful but couldn't load user info, using fallback session");
                         return new AuthResult(
                             AuthFlowState.Authenticated,
                             "Zalogowano pomyślnie.",
@@ -97,6 +138,7 @@ public sealed class HttpAuthGateway : IAuthGateway
                 var legacySession = data is null ? null : ParseLegacySession(data.Value);
                 if (legacySession is not null)
                 {
+                    _logger.LogInformation("Login successful with legacy session format (tokens)");
                     return new AuthResult(
                         AuthFlowState.Authenticated,
                         "Zalogowano pomyślnie.",
@@ -107,6 +149,7 @@ public sealed class HttpAuthGateway : IAuthGateway
                 var profileSession = await LoadCurrentUserSessionAsync(cancellationToken);
                 if (profileSession is not null)
                 {
+                    _logger.LogInformation("Login successful, user info loaded from /users/me");
                     return new AuthResult(
                         AuthFlowState.Authenticated,
                         "Zalogowano pomyślnie.",
@@ -117,6 +160,7 @@ public sealed class HttpAuthGateway : IAuthGateway
                 var fallbackVerifySession = BuildFallbackSession(_pendingLoginEmail);
                 if (fallbackVerifySession is not null)
                 {
+                    _logger.LogWarning("Login successful but couldn't load user info, using fallback session");
                     return new AuthResult(
                         AuthFlowState.Authenticated,
                         "Zalogowano pomyślnie.",
@@ -134,6 +178,7 @@ public sealed class HttpAuthGateway : IAuthGateway
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error during login for email {Email}", _pendingLoginEmail);
             return new AuthResult(AuthFlowState.Anonymous, $"Błąd połączenia: {ex.Message}");
         }
     }
@@ -195,6 +240,35 @@ public sealed class HttpAuthGateway : IAuthGateway
         }
     }
 
+    public async Task<AuthResult> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Backend doesn't use explicit refresh tokens with Sanctum
+            // The refresh endpoint requires Bearer auth with current token
+            // For now, we'll just re-authenticate by reloading the current user profile
+            
+            _logger.LogInformation("Refreshing session by reloading user profile");
+            
+            var session = await LoadCurrentUserSessionAsync(cancellationToken);
+            if (session is not null)
+            {
+                return new AuthResult(
+                    AuthFlowState.Authenticated,
+                    "Session refreshed successfully.",
+                    session
+                );
+            }
+
+            return new AuthResult(AuthFlowState.Anonymous, "Failed to refresh session.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error refreshing session");
+            return new AuthResult(AuthFlowState.Anonymous, $"Session refresh error: {ex.Message}");
+        }
+    }
+
     public async Task LogoutAsync(string accessToken, CancellationToken cancellationToken)
     {
         try
@@ -224,33 +298,46 @@ public sealed class HttpAuthGateway : IAuthGateway
     {
         try
         {
+            _logger.LogInformation("Loading user session from {Endpoint}", $"{_options.BaseUrl}/users/me");
+            
             using var request = new HttpRequestMessage(HttpMethod.Get, $"{_options.BaseUrl}/users/me");
             request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            
+            _logger.LogInformation("User session response: HTTP {StatusCode}, Content: {ContentLength} bytes", 
+                response.StatusCode, responseContent.Length);
 
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogWarning("Failed to load user session: HTTP {StatusCode}, Response: {Response}", 
+                    response.StatusCode, responseContent);
                 return null;
             }
 
             var data = DeserializeObject(responseContent);
             if (data is null)
             {
+                _logger.LogWarning("Failed to deserialize user session response");
                 return null;
             }
 
             if (!JsonParserHelper.TryGetStringProperty(data.Value, "name", out var fullName) ||
                 !JsonParserHelper.TryGetStringProperty(data.Value, "role", out var role))
             {
+                _logger.LogWarning("Required fields (name, role) not found in user session response: {Json}", responseContent);
                 return null;
             }
 
-            return new UserSession(string.Empty, string.Empty, fullName!, role!);
+            _logger.LogInformation("User session loaded: {Name} ({Role})", fullName, role);
+            
+            // Backend uses cookie-based auth, so we create session without tokens
+            return UserSession.FromProfile(fullName!, role!);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error loading user session from /users/me");
             return null;
         }
     }

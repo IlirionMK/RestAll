@@ -60,8 +60,13 @@ public abstract class CancelableViewModelBase : ViewModelBase, IDisposable
         _cts = null;
     }
 
-    public void Dispose()
+    protected virtual void OnDispose()
+    {
+    }
+
+    public virtual void Dispose()
     {
         Cancel();
+        OnDispose();
     }
 }

@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using RestAll.Desktop.Core.Orders;
 using RestAll.Desktop.Infrastructure.Auth;
 using RestAll.Desktop.Infrastructure.Orders;
@@ -44,7 +46,8 @@ public class HttpOrderGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpOrderGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpOrderGateway>>();
+        var gateway = new HttpOrderGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.GetOrdersAsync(CancellationToken.None);
@@ -60,7 +63,8 @@ public class HttpOrderGatewayTests
         var response = new HttpResponseMessage(HttpStatusCode.NotFound);
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpOrderGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpOrderGateway>>();
+        var gateway = new HttpOrderGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.GetOrdersAsync(CancellationToken.None);
@@ -86,7 +90,8 @@ public class HttpOrderGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpOrderGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpOrderGateway>>();
+        var gateway = new HttpOrderGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.PayOrderAsync(1, CancellationToken.None);
@@ -102,7 +107,8 @@ public class HttpOrderGatewayTests
         var response = new HttpResponseMessage(HttpStatusCode.NotFound);
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpOrderGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpOrderGateway>>();
+        var gateway = new HttpOrderGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.PayOrderAsync(1, CancellationToken.None);
@@ -119,7 +125,8 @@ public class HttpOrderGatewayTests
         var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpOrderGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpOrderGateway>>();
+        var gateway = new HttpOrderGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.CreateOrderAsync(1, CancellationToken.None);

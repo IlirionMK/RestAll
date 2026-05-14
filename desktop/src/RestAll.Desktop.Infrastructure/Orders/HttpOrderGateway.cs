@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using RestAll.Desktop.Core.Orders;
 using RestAll.Desktop.Infrastructure.Auth;
 using RestAll.Desktop.Infrastructure.Json;
@@ -10,22 +11,29 @@ public sealed class HttpOrderGateway : IOrderGateway
 {
     private readonly HttpClient _httpClient;
     private readonly RestAllApiOptions _options;
+    private readonly ILogger<HttpOrderGateway> _logger;
 
-    public HttpOrderGateway(HttpClient httpClient, RestAllApiOptions options)
+    public HttpOrderGateway(HttpClient httpClient, RestAllApiOptions options, ILogger<HttpOrderGateway> logger)
     {
         _httpClient = httpClient;
         _options = options;
+        _logger = logger;
     }
 
     public async Task<List<Order>> GetOrdersAsync(CancellationToken cancellationToken)
     {
         try
         {
+            _logger.LogInformation("Fetching orders from {Endpoint}", $"{_options.BaseUrl}/orders");
             var response = await _httpClient.GetAsync($"{_options.BaseUrl}/orders", cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
+            _logger.LogInformation("Orders response: HTTP {StatusCode}, Content: {ContentLength} bytes", 
+                response.StatusCode, responseContent.Length);
+
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogWarning("Failed to fetch orders: {Response}", responseContent);
                 return new List<Order>();
             }
 
@@ -47,8 +55,9 @@ public sealed class HttpOrderGateway : IOrderGateway
 
             return orders;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error fetching orders from API");
             return new List<Order>();
         }
     }
@@ -73,8 +82,9 @@ public sealed class HttpOrderGateway : IOrderGateway
 
             return ParseOrder(data);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error fetching order {OrderId} from API", id);
             return null;
         }
     }
@@ -110,8 +120,9 @@ public sealed class HttpOrderGateway : IOrderGateway
 
             return ParseOrder(data);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error creating order for table {TableId}", tableId);
             return null;
         }
     }
@@ -152,8 +163,9 @@ public sealed class HttpOrderGateway : IOrderGateway
 
             return ParseOrder(data);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error adding items to order {OrderId}", orderId);
             return null;
         }
     }
@@ -165,8 +177,9 @@ public sealed class HttpOrderGateway : IOrderGateway
             var response = await _httpClient.DeleteAsync($"{_options.BaseUrl}/orders/{orderId}/items/{orderItemId}", cancellationToken);
             return response.IsSuccessStatusCode;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error removing item {OrderItemId} from order {OrderId}", orderItemId, orderId);
             return false;
         }
     }
@@ -178,8 +191,9 @@ public sealed class HttpOrderGateway : IOrderGateway
             var response = await _httpClient.PostAsync($"{_options.BaseUrl}/orders/{orderId}/pay", null, cancellationToken);
             return response.IsSuccessStatusCode;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error paying order {OrderId}", orderId);
             return false;
         }
     }

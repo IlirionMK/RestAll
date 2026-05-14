@@ -9,15 +9,23 @@ public interface ITableManagementUseCase
 public sealed class TableManagementUseCase : ITableManagementUseCase
 {
     private readonly ITableGateway _gateway;
+    private readonly RestAll.Desktop.Core.Auth.IManageProfileUseCase _profileUseCase;
 
-    public TableManagementUseCase(ITableGateway gateway)
+    public TableManagementUseCase(ITableGateway gateway, RestAll.Desktop.Core.Auth.IManageProfileUseCase profileUseCase)
     {
         _gateway = gateway;
+        _profileUseCase = profileUseCase;
     }
 
     public async Task<List<Table>> GetTablesAsync(CancellationToken cancellationToken)
     {
-        return await _gateway.GetTablesAsync(cancellationToken);
+        var profile = await _profileUseCase.GetProfileAsync(cancellationToken);
+        if (profile?.RestaurantId is null)
+        {
+            return new List<Table>();
+        }
+
+        return await _gateway.GetTablesAsync(profile.RestaurantId.Value, cancellationToken);
     }
 
     public async Task<bool> UpdateTableStatusAsync(int id, TableStatus status, CancellationToken cancellationToken)

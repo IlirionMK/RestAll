@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using RestAll.Desktop.Core.Auth;
 using Xunit;
@@ -8,12 +9,16 @@ namespace RestAll.Desktop.Tests.Auth;
 public class AuthenticateUserUseCaseTests
 {
     private readonly Mock<IAuthGateway> _mockGateway;
+    private readonly Mock<ILogger<AuthenticateUserUseCase>> _mockLogger;
+    private readonly Mock<ISessionStorage> _mockSessionStorage;
     private readonly AuthenticateUserUseCase _useCase;
 
     public AuthenticateUserUseCaseTests()
     {
         _mockGateway = new Mock<IAuthGateway>();
-        _useCase = new AuthenticateUserUseCase(_mockGateway.Object);
+        _mockLogger = new Mock<ILogger<AuthenticateUserUseCase>>();
+        _mockSessionStorage = new Mock<ISessionStorage>();
+        _useCase = new AuthenticateUserUseCase(_mockGateway.Object, _mockLogger.Object, _mockSessionStorage.Object);
     }
 
     [Fact]
