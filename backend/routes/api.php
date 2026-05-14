@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AuthSessionController;
 use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\KitchenController;
 use App\Http\Controllers\Api\MenuCategoryController;
@@ -25,6 +26,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
     Route::post('/reset-password', [NewPasswordController::class, 'store']);
+    Route::post('/token', [AuthSessionController::class, 'store']);
 
     Route::middleware('web')->group(function () {
         Route::get('/google/redirect', [GoogleAuthController::class, 'redirectToGoogle']);
@@ -40,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']);
+        Route::delete('/token', [AuthSessionController::class, 'destroy']);
         Route::post('/2fa/verify', [AuthController::class, 'verify2fa']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
     });
