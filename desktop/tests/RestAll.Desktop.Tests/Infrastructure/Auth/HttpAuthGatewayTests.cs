@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using RestAll.Desktop.Core.Auth;
 using RestAll.Desktop.Infrastructure.Auth;
 using RestAll.Desktop.Tests.TestHelpers;
@@ -35,7 +37,8 @@ public class HttpAuthGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpAuthGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpAuthGateway>>();
+        var gateway = new HttpAuthGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.LoginAsync("test@example.com", "password", CancellationToken.None);
@@ -65,7 +68,8 @@ public class HttpAuthGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpAuthGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpAuthGateway>>();
+        var gateway = new HttpAuthGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.LoginAsync("test@example.com", "password", CancellationToken.None);
@@ -92,7 +96,8 @@ public class HttpAuthGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpAuthGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpAuthGateway>>();
+        var gateway = new HttpAuthGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.LoginAsync("test@example.com", "wrongpassword", CancellationToken.None);
@@ -109,7 +114,8 @@ public class HttpAuthGatewayTests
         var exception = new HttpRequestException("Network error");
         var handler = new MockHttpMessageHandler(exception);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpAuthGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpAuthGateway>>();
+        var gateway = new HttpAuthGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.LoginAsync("test@example.com", "password", CancellationToken.None);
@@ -141,7 +147,8 @@ public class HttpAuthGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpAuthGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpAuthGateway>>();
+        var gateway = new HttpAuthGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.VerifyTwoFactorAsync("test_ticket", "123456", CancellationToken.None);
@@ -159,7 +166,8 @@ public class HttpAuthGatewayTests
         var response = new HttpResponseMessage(HttpStatusCode.OK);
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpAuthGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpAuthGateway>>();
+        var gateway = new HttpAuthGateway(httpClient, _options, logger.Object);
 
         // Act
         await gateway.LogoutAsync("test_token", CancellationToken.None);
@@ -175,7 +183,8 @@ public class HttpAuthGatewayTests
         var exception = new HttpRequestException("Network error");
         var handler = new MockHttpMessageHandler(exception);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpAuthGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpAuthGateway>>();
+        var gateway = new HttpAuthGateway(httpClient, _options, logger.Object);
 
         // Act
         await gateway.LogoutAsync("test_token", CancellationToken.None);

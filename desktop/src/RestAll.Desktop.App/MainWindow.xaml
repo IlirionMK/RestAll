@@ -13,18 +13,38 @@
         
         <!-- Header -->
         <Border Grid.Row="0" Background="#2C3E50" Padding="20">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{DynamicResource AppName}" 
-                           FontSize="20" 
-                           FontWeight="Bold" 
-                           Foreground="White"
-                           VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding UserInfo}" 
-                           FontSize="14" 
-                           Foreground="White"
-                           Margin="20,0,0,0"
-                           VerticalAlignment="Center"/>
-            </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="{DynamicResource AppName}" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="White"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding UserInfo}" 
+                               FontSize="14" 
+                               Foreground="White"
+                               Margin="20,0,0,0"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Profile" 
+                            Height="30" 
+                            Width="80"
+                            Margin="0,0,10,0"
+                            Click="OpenProfile_Click"/>
+                    <Button Content="Logout" 
+                            Height="30" 
+                            Width="80"
+                            Command="{Binding LogoutCommand}"
+                            Click="Logout_Click"/>
+                </StackPanel>
+            </Grid>
         </Border>
         
         <!-- Main Content -->
@@ -54,7 +74,12 @@
                     <Button Content="{DynamicResource OpenKitchenButton}" 
                             Height="35" 
                             Width="150"
+                            Margin="0,0,10,0"
                             Click="OpenKitchen_Click"/>
+                    <Button Content="Reservations" 
+                            Height="35" 
+                            Width="150"
+                            Click="OpenReservations_Click"/>
                 </StackPanel>
             </StackPanel>
         </Grid>

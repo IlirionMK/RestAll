@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using RestAll.Desktop.Core.Tables;
 using RestAll.Desktop.Infrastructure.Auth;
 using RestAll.Desktop.Infrastructure.Json;
@@ -10,22 +11,30 @@ public sealed class HttpTableGateway : ITableGateway
 {
     private readonly HttpClient _httpClient;
     private readonly RestAllApiOptions _options;
+    private readonly ILogger<HttpTableGateway> _logger;
 
-    public HttpTableGateway(HttpClient httpClient, RestAllApiOptions options)
+    public HttpTableGateway(HttpClient httpClient, RestAllApiOptions options, ILogger<HttpTableGateway> logger)
     {
         _httpClient = httpClient;
         _options = options;
+        _logger = logger;
     }
 
-    public async Task<List<Table>> GetTablesAsync(CancellationToken cancellationToken)
+    public async Task<List<Table>> GetTablesAsync(int restaurantId, CancellationToken cancellationToken)
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{_options.BaseUrl}/tables", cancellationToken);
+            var endpoint = $"{_options.BaseUrl}/tables?restaurant_id={restaurantId}";
+            _logger.LogInformation("Fetching tables from {Endpoint}", endpoint);
+            var response = await _httpClient.GetAsync(endpoint, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            _logger.LogInformation("Tables response: HTTP {StatusCode}, Content: {ContentLength} bytes", 
+                response.StatusCode, responseContent.Length);
 
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogWarning("Failed to fetch tables: {Response}", responseContent);
                 return new List<Table>();
             }
 
@@ -47,8 +56,9 @@ public sealed class HttpTableGateway : ITableGateway
 
             return tables;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error fetching tables from API");
             return new List<Table>();
         }
     }
@@ -72,8 +82,9 @@ public sealed class HttpTableGateway : ITableGateway
 
             return response.IsSuccessStatusCode;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error updating table {TableId} status to {Status}", id, status);
             return false;
         }
     }

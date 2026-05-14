@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using RestAll.Desktop.Core.Menu;
 using RestAll.Desktop.Infrastructure.Auth;
 using RestAll.Desktop.Infrastructure.Json;
@@ -10,28 +11,39 @@ public sealed class HttpMenuGateway : IMenuGateway
 {
     private readonly HttpClient _httpClient;
     private readonly RestAllApiOptions _options;
+    private readonly ILogger<HttpMenuGateway> _logger;
 
-    public HttpMenuGateway(HttpClient httpClient, RestAllApiOptions options)
+    public HttpMenuGateway(HttpClient httpClient, RestAllApiOptions options, ILogger<HttpMenuGateway> logger)
     {
         _httpClient = httpClient;
         _options = options;
+        _logger = logger;
     }
 
     public async Task<List<MenuCategory>> GetCategoriesAsync(CancellationToken cancellationToken)
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{_options.BaseUrl}/menu/categories", cancellationToken);
+            var endpoint = $"{_options.BaseUrl}/menu/categories";
+            _logger.LogInformation("Fetching menu categories from {Endpoint}", endpoint);
+            
+            var response = await _httpClient.GetAsync(endpoint, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            _logger.LogInformation("Menu categories response: HTTP {StatusCode}, Content: {ContentLength} bytes", 
+                response.StatusCode, responseContent.Length);
 
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogWarning("Failed to fetch menu categories (HTTP {StatusCode}): {Response}", 
+                    response.StatusCode, responseContent.Length > 500 ? responseContent.Substring(0, 500) : responseContent);
                 return new List<MenuCategory>();
             }
 
             var data = JsonSerializer.Deserialize<JsonElement>(responseContent);
             if (data.ValueKind != JsonValueKind.Array)
             {
+                _logger.LogWarning("Unexpected response format: expected array, got {ValueKind}", data.ValueKind);
                 return new List<MenuCategory>();
             }
 
@@ -45,10 +57,12 @@ public sealed class HttpMenuGateway : IMenuGateway
                 }
             }
 
+            _logger.LogInformation("Loaded {CategoryCount} menu categories", categories.Count);
             return categories;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error fetching menu categories from API");
             return new List<MenuCategory>();
         }
     }
@@ -57,34 +71,13 @@ public sealed class HttpMenuGateway : IMenuGateway
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{_options.BaseUrl}/menu/items", cancellationToken);
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return new List<MenuItem>();
-            }
-
-            var data = JsonSerializer.Deserialize<JsonElement>(responseContent);
-            if (data.ValueKind != JsonValueKind.Array)
-            {
-                return new List<MenuItem>();
-            }
-
-            var items = new List<MenuItem>();
-            foreach (var element in data.EnumerateArray())
-            {
-                var item = ParseItem(element);
-                if (item is not null)
-                {
-                    items.Add(item);
-                }
-            }
-
-            return items;
+            _logger.LogInformation("Fetching menu items via menu categories endpoint");
+            var categories = await GetCategoriesAsync(cancellationToken);
+            return categories.SelectMany(category => category.Items).ToList();
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error fetching menu items from API");
             return new List<MenuItem>();
         }
     }

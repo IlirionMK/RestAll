@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "viRo5QDSyP0=",
+  "dgSpecHash": "fTUP69NMnhA=",
   "success": true,
   "projectFilePath": "C:\\Users\\2sebo\\RiderProjects\\RestAll\\desktop\\src\\RestAll.Desktop.Core\\RestAll.Desktop.Core.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\2sebo\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\10.0.0\\microsoft.extensions.caching.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\2sebo\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.0\\microsoft.extensions.dependencyinjection.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\2sebo\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.0\\microsoft.extensions.logging.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\2sebo\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.0\\microsoft.extensions.primitives.10.0.0.nupkg.sha512"
+  ],
   "logs": []
 }

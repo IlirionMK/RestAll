@@ -1,5 +1,7 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
+using RestAll.Desktop.Core.Cache;
 using RestAll.Desktop.Core.Orders;
 using Xunit;
 
@@ -8,12 +10,16 @@ namespace RestAll.Desktop.Tests.Orders;
 public class ManageOrdersUseCaseTests
 {
     private readonly Mock<IOrderGateway> _mockGateway;
+    private readonly Mock<ICacheService> _mockCache;
+    private readonly Mock<ILogger<ManageOrdersUseCase>> _mockLogger;
     private readonly ManageOrdersUseCase _useCase;
 
     public ManageOrdersUseCaseTests()
     {
         _mockGateway = new Mock<IOrderGateway>();
-        _useCase = new ManageOrdersUseCase(_mockGateway.Object);
+        _mockCache = new Mock<ICacheService>();
+        _mockLogger = new Mock<ILogger<ManageOrdersUseCase>>();
+        _useCase = new ManageOrdersUseCase(_mockGateway.Object, _mockCache.Object, _mockLogger.Object);
     }
 
     [Fact]

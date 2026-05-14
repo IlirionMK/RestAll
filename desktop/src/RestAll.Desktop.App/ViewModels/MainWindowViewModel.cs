@@ -12,6 +12,8 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         _authUseCase = authUseCase;
         _authUseCase.SessionChanged += OnSessionChanged;
         LoadUserInfo();
+        
+        LogoutCommand = new AsyncRelayCommand(LogoutAsync);
     }
 
     public string UserInfo
@@ -19,6 +21,8 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         get => _userInfo;
         set => SetProperty(ref _userInfo, value);
     }
+
+    public IAsyncRelayCommand LogoutCommand { get; }
 
     private void LoadUserInfo()
     {
@@ -31,6 +35,11 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     private void OnSessionChanged(object? sender, EventArgs e)
     {
         LoadUserInfo();
+    }
+
+    private async Task LogoutAsync()
+    {
+        await _authUseCase.LogoutAsync(System.Threading.CancellationToken.None);
     }
 
     public void Dispose()

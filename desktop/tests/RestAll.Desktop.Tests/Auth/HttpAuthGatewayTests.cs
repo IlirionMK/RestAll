@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using RestAll.Desktop.Core.Auth;
 using RestAll.Desktop.Infrastructure.Auth;
 using Xunit;
@@ -25,7 +27,8 @@ public class HttpAuthGatewayTests
         );
 
         var client = new HttpClient(handler);
-        var gateway = new HttpAuthGateway(client, new RestAllApiOptions { BaseUrl = "http://localhost/api" });
+        var logger = new Mock<ILogger<HttpAuthGateway>>();
+        var gateway = new HttpAuthGateway(client, new RestAllApiOptions { BaseUrl = "http://localhost/api" }, logger.Object);
 
         var result = await gateway.LoginAsync("admin@restall.com", "password", CancellationToken.None);
 
@@ -49,7 +52,8 @@ public class HttpAuthGatewayTests
         );
 
         var client = new HttpClient(handler);
-        var gateway = new HttpAuthGateway(client, new RestAllApiOptions { BaseUrl = "http://localhost/api" });
+        var logger = new Mock<ILogger<HttpAuthGateway>>();
+        var gateway = new HttpAuthGateway(client, new RestAllApiOptions { BaseUrl = "http://localhost/api" }, logger.Object);
 
         var result = await gateway.LoginAsync("admin@restall.com", "password", CancellationToken.None);
 
@@ -70,7 +74,8 @@ public class HttpAuthGatewayTests
         );
 
         var client = new HttpClient(handler);
-        var gateway = new HttpAuthGateway(client, new RestAllApiOptions { BaseUrl = "http://localhost/api" });
+        var logger = new Mock<ILogger<HttpAuthGateway>>();
+        var gateway = new HttpAuthGateway(client, new RestAllApiOptions { BaseUrl = "http://localhost/api" }, logger.Object);
 
         var result = await gateway.LoginAsync("admin@restall.com", "password", CancellationToken.None);
 

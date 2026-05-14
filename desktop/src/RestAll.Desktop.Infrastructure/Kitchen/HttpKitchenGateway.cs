@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using RestAll.Desktop.Core.Kitchen;
 using RestAll.Desktop.Core.Orders;
 using RestAll.Desktop.Infrastructure.Auth;
@@ -11,22 +12,29 @@ public sealed class HttpKitchenGateway : IKitchenGateway
 {
     private readonly HttpClient _httpClient;
     private readonly RestAllApiOptions _options;
+    private readonly ILogger<HttpKitchenGateway> _logger;
 
-    public HttpKitchenGateway(HttpClient httpClient, RestAllApiOptions options)
+    public HttpKitchenGateway(HttpClient httpClient, RestAllApiOptions options, ILogger<HttpKitchenGateway> logger)
     {
         _httpClient = httpClient;
         _options = options;
+        _logger = logger;
     }
 
     public async Task<List<KitchenTicket>> GetActiveTicketsAsync(CancellationToken cancellationToken)
     {
         try
         {
+            _logger.LogInformation("Fetching kitchen tickets from {Endpoint}", $"{_options.BaseUrl}/kitchen/tickets");
             var response = await _httpClient.GetAsync($"{_options.BaseUrl}/kitchen/tickets", cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
+            _logger.LogInformation("Kitchen tickets response: HTTP {StatusCode}, Content: {ContentLength} bytes", 
+                response.StatusCode, responseContent.Length);
+
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogWarning("Failed to fetch kitchen tickets: {Response}", responseContent);
                 return new List<KitchenTicket>();
             }
 
@@ -48,8 +56,9 @@ public sealed class HttpKitchenGateway : IKitchenGateway
 
             return tickets;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error fetching active kitchen tickets from API");
             return new List<KitchenTicket>();
         }
     }
@@ -73,8 +82,9 @@ public sealed class HttpKitchenGateway : IKitchenGateway
 
             return response.IsSuccessStatusCode;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error updating kitchen ticket {OrderItemId} status to {Status}", orderItemId, status);
             return false;
         }
     }

@@ -1,5 +1,7 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
+using RestAll.Desktop.Core.Cache;
 using RestAll.Desktop.Core.Menu;
 using Xunit;
 
@@ -8,12 +10,16 @@ namespace RestAll.Desktop.Tests.Menu;
 public class GetMenuUseCaseTests
 {
     private readonly Mock<IMenuGateway> _mockGateway;
+    private readonly Mock<ICacheService> _mockCache;
+    private readonly Mock<ILogger<GetMenuUseCase>> _mockLogger;
     private readonly GetMenuUseCase _useCase;
 
     public GetMenuUseCaseTests()
     {
         _mockGateway = new Mock<IMenuGateway>();
-        _useCase = new GetMenuUseCase(_mockGateway.Object);
+        _mockCache = new Mock<ICacheService>();
+        _mockLogger = new Mock<ILogger<GetMenuUseCase>>();
+        _useCase = new GetMenuUseCase(_mockGateway.Object, _mockCache.Object, _mockLogger.Object);
     }
 
     [Fact]

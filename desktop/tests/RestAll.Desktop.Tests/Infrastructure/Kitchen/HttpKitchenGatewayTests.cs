@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using RestAll.Desktop.Core.Kitchen;
 using RestAll.Desktop.Core.Orders;
 using RestAll.Desktop.Infrastructure.Auth;
@@ -57,7 +59,8 @@ public class HttpKitchenGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpKitchenGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpKitchenGateway>>();
+        var gateway = new HttpKitchenGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.GetActiveTicketsAsync(CancellationToken.None);
@@ -82,7 +85,8 @@ public class HttpKitchenGatewayTests
         var response = new HttpResponseMessage(HttpStatusCode.NotFound);
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpKitchenGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpKitchenGateway>>();
+        var gateway = new HttpKitchenGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.GetActiveTicketsAsync(CancellationToken.None);
@@ -99,7 +103,8 @@ public class HttpKitchenGatewayTests
         
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpKitchenGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpKitchenGateway>>();
+        var gateway = new HttpKitchenGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.UpdateTicketStatusAsync(1, OrderItemStatus.Preparing, CancellationToken.None);
@@ -120,7 +125,8 @@ public class HttpKitchenGatewayTests
         var response = new HttpResponseMessage(HttpStatusCode.NotFound);
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(_options.BaseUrl) };
-        var gateway = new HttpKitchenGateway(httpClient, _options);
+        var logger = new Mock<ILogger<HttpKitchenGateway>>();
+        var gateway = new HttpKitchenGateway(httpClient, _options, logger.Object);
 
         // Act
         var result = await gateway.UpdateTicketStatusAsync(1, OrderItemStatus.Preparing, CancellationToken.None);

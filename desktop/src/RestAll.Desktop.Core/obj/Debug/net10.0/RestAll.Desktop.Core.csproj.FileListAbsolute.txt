@@ -10,3 +10,4 @@ C:\Users\2sebo\RiderProjects\RestAll\desktop\src\RestAll.Desktop.Core\obj\Debug\
 C:\Users\2sebo\RiderProjects\RestAll\desktop\src\RestAll.Desktop.Core\obj\Debug\net10.0\refint\RestAll.Desktop.Core.dll
 C:\Users\2sebo\RiderProjects\RestAll\desktop\src\RestAll.Desktop.Core\obj\Debug\net10.0\RestAll.Desktop.Core.pdb
 C:\Users\2sebo\RiderProjects\RestAll\desktop\src\RestAll.Desktop.Core\obj\Debug\net10.0\ref\RestAll.Desktop.Core.dll
+C:\Users\2sebo\RiderProjects\RestAll\desktop\src\RestAll.Desktop.Core\obj\Debug\net10.0\RestAll.Desktop.Core.csproj.AssemblyReference.cache

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 
 namespace RestAll.Desktop.Infrastructure.Json;
@@ -29,11 +30,27 @@ public static class JsonParserHelper
     public static bool TryGetDecimalProperty(JsonElement element, string propertyName, out decimal value)
     {
         value = default;
-        if (element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.Number)
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return false;
+        }
+
+        if (property.ValueKind == JsonValueKind.Number)
         {
             value = property.GetDecimal();
             return true;
         }
+
+        if (property.ValueKind == JsonValueKind.String)
+        {
+            var raw = property.GetString();
+            if (!string.IsNullOrWhiteSpace(raw) &&
+                decimal.TryParse(raw, NumberStyles.Number, CultureInfo.InvariantCulture, out value))
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
