@@ -43,8 +43,8 @@ class AuthSessionController extends Controller
     public function store(Request $request, LoginAction $action): JsonResponse
     {
         $validated = $request->validate([
-            'email'       => ['required', 'email'],
-            'password'    => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
             'device_name' => ['sometimes', 'string', 'max:255'],
         ]);
 
@@ -56,11 +56,11 @@ class AuthSessionController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user'  => [
-                'id'            => $user->id,
-                'name'          => $user->name,
-                'email'         => $user->email,
-                'role'          => $user->role->value,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role->value,
                 'restaurant_id' => $user->restaurant_id,
             ],
         ]);

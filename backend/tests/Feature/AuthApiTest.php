@@ -62,7 +62,7 @@ class AuthApiTest extends TestCase
         $user = User::factory()->create(['password' => Hash::make('password')]);
 
         $this->postJson('/api/auth/token', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'password',
         ])
             ->assertOk()
@@ -77,7 +77,7 @@ class AuthApiTest extends TestCase
         $user = User::factory()->create(['password' => Hash::make('password')]);
 
         $response = $this->postJson('/api/auth/token', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'password',
         ])->assertOk();
 
@@ -90,7 +90,7 @@ class AuthApiTest extends TestCase
         $user = User::factory()->create();
 
         $this->postJson('/api/auth/token', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'wrong-password',
         ])->assertUnprocessable();
     }
@@ -98,7 +98,7 @@ class AuthApiTest extends TestCase
     public function test_token_login_fails_with_unknown_email(): void
     {
         $this->postJson('/api/auth/token', [
-            'email'    => 'nobody@example.com',
+            'email' => 'nobody@example.com',
             'password' => 'password',
         ])->assertUnprocessable();
     }
@@ -108,14 +108,14 @@ class AuthApiTest extends TestCase
         $user = User::factory()->create(['password' => Hash::make('password')]);
 
         $this->postJson('/api/auth/token', [
-            'email'       => $user->email,
-            'password'    => 'password',
+            'email' => $user->email,
+            'password' => 'password',
             'device_name' => 'restall.desktop',
         ])->assertOk();
 
         $this->postJson('/api/auth/token', [
-            'email'       => $user->email,
-            'password'    => 'password',
+            'email' => $user->email,
+            'password' => 'password',
             'device_name' => 'restall.desktop',
         ])->assertOk();
 
@@ -124,7 +124,7 @@ class AuthApiTest extends TestCase
 
     public function test_authenticated_user_can_revoke_token(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $token = $user->createToken('restall.desktop')->plainTextToken;
 
         $this->withToken($token)

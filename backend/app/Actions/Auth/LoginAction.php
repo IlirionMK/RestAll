@@ -24,7 +24,7 @@ class LoginAction
 
         return [
             'token' => $this->generateToken->execute($user, $deviceName),
-            'user'  => $user,
+            'user' => $user,
         ];
     }
 }
