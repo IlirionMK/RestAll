@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Windows.Input;
 using System.Windows.Media;
 using RestAll.Desktop.Core.Auth;
 using RestAll.Desktop.Infrastructure.Auth;
@@ -26,6 +27,7 @@ public class LoginViewModel : CancelableViewModelBase
         LoginCommand = new AsyncRelayCommand(LoginAsync, CanExecuteLogin);
         VerifyTwoFactorCommand = new AsyncRelayCommand(VerifyTwoFactorAsync, CanExecuteVerifyTwoFactor);
         GoogleLoginCommand = new AsyncRelayCommand(GoogleLoginAsync, () => !IsLoading && !IsTwoFactorMode);
+        ForgotPasswordCommand = new RelayCommand(() => ForgotPasswordRequested?.Invoke(this, EventArgs.Empty), () => !IsTwoFactorMode);
     }
 
     public string Email
@@ -87,7 +89,9 @@ public class LoginViewModel : CancelableViewModelBase
     public IAsyncRelayCommand LoginCommand { get; }
     public IAsyncRelayCommand VerifyTwoFactorCommand { get; }
     public IAsyncRelayCommand GoogleLoginCommand { get; }
+    public ICommand ForgotPasswordCommand { get; }
     public event EventHandler? LoginSuccessful;
+    public event EventHandler? ForgotPasswordRequested;
 
     protected override void OnIsLoadingChanged()
     {

@@ -40,6 +40,8 @@ public partial class App : Application
 {
     private IServiceProvider _serviceProvider = null!;
 
+    public IServiceProvider ServiceProvider => _serviceProvider;
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -155,6 +157,8 @@ public partial class App : Application
         
         // Register ViewModels
         services.AddTransient<LoginViewModel>();
+        services.AddTransient<ForgotPasswordViewModel>();
+        services.AddTransient<ResetPasswordViewModel>();
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<MenuViewModel>();
         services.AddTransient<TablesViewModel>();

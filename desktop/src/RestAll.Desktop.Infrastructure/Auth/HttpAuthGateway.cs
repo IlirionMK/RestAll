@@ -420,4 +420,59 @@ public sealed class HttpAuthGateway : IAuthGateway
 
         return $"{fallbackMessage} (HTTP {statusCode}, {contentType})";
     }
+
+    public async Task<bool> SendPasswordResetLinkAsync(string email, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var requestBody = new { email };
+            var content = new StringContent(
+                JsonSerializer.Serialize(requestBody),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/auth/forgot-password", content, cancellationToken);
+            
+            _logger.LogInformation("Password reset link request: HTTP {StatusCode}", response.StatusCode);
+            
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending password reset link to {Email}", email);
+            return false;
+        }
+    }
+
+    public async Task<bool> ResetPasswordAsync(string email, string token, string password, string passwordConfirmation, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var requestBody = new
+            {
+                email,
+                token,
+                password,
+                password_confirmation = passwordConfirmation
+            };
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(requestBody),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/auth/reset-password", content, cancellationToken);
+            
+            _logger.LogInformation("Password reset request: HTTP {StatusCode}", response.StatusCode);
+            
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting password for {Email}", email);
+            return false;
+        }
+    }
 }

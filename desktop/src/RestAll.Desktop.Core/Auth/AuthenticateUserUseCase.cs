@@ -14,6 +14,8 @@ public interface IAuthenticateUserUseCase
     Task LogoutAsync(CancellationToken cancellationToken);
     void ResetState();
     void InitializeAsync();
+    Task<bool> SendPasswordResetLinkAsync(string email, CancellationToken cancellationToken);
+    Task<bool> ResetPasswordAsync(string email, string token, string password, string passwordConfirmation, CancellationToken cancellationToken);
 }
 
 public sealed class AuthenticateUserUseCase : IAuthenticateUserUseCase
@@ -165,6 +167,18 @@ public sealed class AuthenticateUserUseCase : IAuthenticateUserUseCase
         State = AuthFlowState.Anonymous;
         // Add delay to ensure session is fully set before firing event
                 Task.Delay(200).ContinueWith(_ => SessionChanged?.Invoke(this, EventArgs.Empty));
+    }
+
+    public async Task<bool> SendPasswordResetLinkAsync(string email, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Sending password reset link to {Email}", email);
+        return await _gateway.SendPasswordResetLinkAsync(email, cancellationToken);
+    }
+
+    public async Task<bool> ResetPasswordAsync(string email, string token, string password, string passwordConfirmation, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Resetting password for {Email}", email);
+        return await _gateway.ResetPasswordAsync(email, token, password, passwordConfirmation, cancellationToken);
     }
 
     private void ApplyResult(AuthResult result)
