@@ -57,6 +57,13 @@ public partial class MainWindow : Window
         profileView.Show();
     }
 
+    private void OpenAdmin_Click(object sender, RoutedEventArgs e)
+    {
+        var adminView = ((App)Application.Current).CreateAdminDashboardView();
+        adminView.Closed += (s, args) => ((CancelableViewModelBase)adminView.DataContext).Dispose();
+        adminView.Show();
+    }
+
     private async void Logout_Click(object sender, RoutedEventArgs e)
     {
         await _viewModel.LogoutCommand.ExecuteAsync();

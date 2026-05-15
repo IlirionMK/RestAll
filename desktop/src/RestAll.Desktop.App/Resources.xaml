@@ -14,6 +14,7 @@
     <sys:String x:Key="VerifyTwoFactorButton">Zweryfikuj 2FA</sys:String>
 
     <!-- Main Window -->
+    <sys:String x:Key="OpenAdminButton">Admin</sys:String>
     <sys:String x:Key="OpenMenuButton">Open Menu</sys:String>
     <sys:String x:Key="OpenTablesButton">Open Tables</sys:String>
     <sys:String x:Key="OpenOrdersButton">Open Orders</sys:String>

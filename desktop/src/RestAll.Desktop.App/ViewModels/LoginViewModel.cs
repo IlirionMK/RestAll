@@ -1,12 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.Windows.Media;
 using RestAll.Desktop.Core.Auth;
+using RestAll.Desktop.Infrastructure.Auth;
 
 namespace RestAll.Desktop.App.ViewModels;
 
 public class LoginViewModel : CancelableViewModelBase
 {
     private readonly IAuthenticateUserUseCase _authUseCase;
+    private readonly GoogleAuthBrowserService? _googleAuthService;
     
     private string _email = "";
     private string _password = "";
@@ -15,13 +17,15 @@ public class LoginViewModel : CancelableViewModelBase
     private Brush _statusColor;
     private string _errorMessage = "";
 
-    public LoginViewModel(IAuthenticateUserUseCase authUseCase)
+    public LoginViewModel(IAuthenticateUserUseCase authUseCase, GoogleAuthBrowserService? googleAuthService = null)
     {
         _authUseCase = authUseCase;
+        _googleAuthService = googleAuthService;
         _statusColor = Brushes.Red;
         
         LoginCommand = new AsyncRelayCommand(LoginAsync, CanExecuteLogin);
         VerifyTwoFactorCommand = new AsyncRelayCommand(VerifyTwoFactorAsync, CanExecuteVerifyTwoFactor);
+        GoogleLoginCommand = new AsyncRelayCommand(GoogleLoginAsync, () => !IsLoading && !IsTwoFactorMode);
     }
 
     public string Email
@@ -82,6 +86,7 @@ public class LoginViewModel : CancelableViewModelBase
 
     public IAsyncRelayCommand LoginCommand { get; }
     public IAsyncRelayCommand VerifyTwoFactorCommand { get; }
+    public IAsyncRelayCommand GoogleLoginCommand { get; }
     public event EventHandler? LoginSuccessful;
 
     protected override void OnIsLoadingChanged()
@@ -229,6 +234,57 @@ public class LoginViewModel : CancelableViewModelBase
         catch (Exception ex)
         {
             StatusMessage = $"Error: {ex.Message}";
+            StatusColor = Brushes.Red;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task GoogleLoginAsync()
+    {
+        if (_googleAuthService == null)
+        {
+            StatusMessage = "Google authentication is not configured. Please contact administrator.";
+            StatusColor = Brushes.Red;
+            return;
+        }
+
+        IsLoading = true;
+        StatusMessage = "Opening browser for Google authentication...";
+        StatusColor = Brushes.Blue;
+
+        try
+        {
+            var success = await _googleAuthService.AuthenticateAsync(GetCancellationToken().Token);
+
+            if (success)
+            {
+                StatusMessage = "Google authentication successful! Loading user profile...";
+                StatusColor = Brushes.Green;
+
+                // After successful Google OAuth, the session cookies are set by the backend
+                // Now we need to load the user profile to complete authentication
+                await Task.Delay(1000); // Give backend time to process
+                
+                // Trigger login successful event - the session will be picked up automatically
+                LoginSuccessful?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                StatusMessage = "Google authentication failed or was cancelled.";
+                StatusColor = Brushes.Red;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Google authentication was cancelled.";
+            StatusColor = Brushes.Orange;
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Google authentication error: {ex.Message}";
             StatusColor = Brushes.Red;
         }
         finally

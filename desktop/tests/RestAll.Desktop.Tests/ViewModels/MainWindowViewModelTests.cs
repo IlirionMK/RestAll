@@ -28,6 +28,7 @@ public class MainWindowViewModelTests
     {
         // Assert
         _viewModel.UserInfo.Should().Be("");
+        _viewModel.CanOpenAdminDashboard.Should().BeFalse();
     }
 
     [Fact]
@@ -69,6 +70,22 @@ public class MainWindowViewModelTests
 
         // Assert
         _viewModel.UserInfo.Should().Be("");
+        _viewModel.CanOpenAdminDashboard.Should().BeFalse();
+    }
+
+    [Fact]
+    public void SessionChanged_WhenAdmin_ShouldEnableAdminDashboard()
+    {
+        // Arrange
+        var session = new UserSession("access_token", "refresh_token", "Jane Smith", "Admin");
+        _mockAuthUseCase.Setup(u => u.CurrentSession).Returns(session);
+        _mockAuthUseCase.Setup(u => u.State).Returns(AuthFlowState.Authenticated);
+
+        // Act
+        _mockAuthUseCase.Raise(u => u.SessionChanged += null, EventArgs.Empty);
+
+        // Assert
+        _viewModel.CanOpenAdminDashboard.Should().BeTrue();
     }
 
     [Fact]

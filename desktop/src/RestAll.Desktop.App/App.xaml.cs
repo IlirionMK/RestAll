@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RestAll.Desktop.Core.Auth;
+using RestAll.Desktop.Core.Admin;
 using RestAll.Desktop.Core.Menu;
 using RestAll.Desktop.Core.Tables;
 using RestAll.Desktop.Core.Orders;
@@ -18,6 +19,7 @@ using RestAll.Desktop.Core.Offline;
 using RestAll.Desktop.Core.Performance;
 using RestAll.Desktop.Core.Cache;
 using RestAll.Desktop.Infrastructure.Auth;
+using RestAll.Desktop.Infrastructure.Admin;
 using RestAll.Desktop.Infrastructure.Menu;
 using RestAll.Desktop.Infrastructure.Tables;
 using RestAll.Desktop.Infrastructure.Orders;
@@ -67,6 +69,9 @@ public partial class App : Application
         services.AddTransient<IManageKitchenUseCase, ManageKitchenUseCase>();
         services.AddTransient<IManageReservationsUseCase, ManageReservationsUseCase>();
         services.AddSingleton<IManageProfileUseCase, ManageProfileUseCase>();
+        services.AddTransient<IManageStaffUseCase, ManageStaffUseCase>();
+        services.AddTransient<IGetAnalyticsSummaryUseCase, GetAnalyticsSummaryUseCase>();
+        services.AddTransient<IGetAuditLogsUseCase, GetAuditLogsUseCase>();
         
         // Register Cache service
         services.AddMemoryCache();
@@ -84,6 +89,18 @@ public partial class App : Application
         services.AddSingleton(apiOptions);
         var realtimeOptions = configuration.GetSection("Realtime").Get<RealtimeOptions>() ?? new RealtimeOptions();
         services.AddSingleton(realtimeOptions);
+        
+        // Register Google Auth service
+        var googleAuthOptions = configuration.GetSection("GoogleAuth");
+        var googleClientId = googleAuthOptions.GetValue<string>("ClientId") ?? string.Empty;
+        var googleClientSecret = googleAuthOptions.GetValue<string>("ClientSecret") ?? string.Empty;
+        var googleCallbackPort = googleAuthOptions.GetValue<int>("CallbackPort", 8765);
+        services.AddSingleton(sp => new GoogleAuthBrowserService(
+            sp.GetRequiredService<ILogger<GoogleAuthBrowserService>>(),
+            googleClientId,
+            googleClientSecret,
+            googleCallbackPort
+        ));
         services.AddHttpClient("broadcasting-auth", client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
             .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
@@ -123,6 +140,10 @@ public partial class App : Application
         services.AddHttpClient<IKitchenGateway, HttpKitchenGateway>(client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
             .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+
+        services.AddHttpClient<IAdminGateway, HttpAdminGateway>(client => ConfigureApiClient(client, apiOptions))
+            .AddHttpMessageHandler<CsrfHeaderHandler>()
+            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
         
         services.AddHttpClient<IReservationGateway, HttpReservationGateway>(client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
@@ -141,6 +162,7 @@ public partial class App : Application
         services.AddTransient<KitchenViewModel>();
         services.AddTransient<ReservationsViewModel>();
         services.AddTransient<ProfileViewModel>();
+        services.AddTransient<AdminDashboardViewModel>();
         
         _serviceProvider = services.BuildServiceProvider();
         
@@ -217,6 +239,12 @@ public partial class App : Application
     {
         var profileViewModel = _serviceProvider.GetRequiredService<ProfileViewModel>();
         return new ProfileView(profileViewModel);
+    }
+
+    public AdminDashboardView CreateAdminDashboardView()
+    {
+        var adminViewModel = _serviceProvider.GetRequiredService<AdminDashboardViewModel>();
+        return new AdminDashboardView(adminViewModel);
     }
 
     private static void ConfigureApiClient(HttpClient client, RestAllApiOptions options)

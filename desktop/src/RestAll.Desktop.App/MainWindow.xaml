@@ -33,6 +33,12 @@
                 </StackPanel>
                 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="{DynamicResource OpenAdminButton}" 
+                            Height="30" 
+                            Width="110"
+                            Margin="0,0,10,0"
+                            Click="OpenAdmin_Click"
+                            Visibility="{Binding CanOpenAdminDashboard, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                     <Button Content="Profile" 
                             Height="30" 
                             Width="80"
