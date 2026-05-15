@@ -72,8 +72,9 @@ public partial class App : Application
         services.AddMemoryCache();
         services.AddSingleton<ICacheService, MemoryCacheService>();
         
-        // Register Offline service
-        services.AddSingleton<IOfflineStorage, SqliteOfflineStorage>();
+        // Register Offline service (register concrete implementation so SyncManager can use specialized methods)
+        services.AddSingleton<SqliteOfflineStorage>();
+        services.AddSingleton<IOfflineStorage>(sp => sp.GetRequiredService<SqliteOfflineStorage>());
         
         // Register Performance service
         services.AddSingleton<IPerformanceMonitor, PerformanceMonitor>();
@@ -88,6 +89,8 @@ public partial class App : Application
             .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
         services.AddSingleton<IRealtimeService, WebSocketRealtimeService>();
         services.AddSingleton<IErrorHandler, ErrorHandler>();
+        // Sync manager for offline operation queue
+        services.AddSingleton<ISyncManager, RestAll.Desktop.Infrastructure.Sync.SyncManager>();
         
         // Register Session storage
         services.AddSingleton<ISessionStorage, SqliteSessionStorage>();
@@ -144,6 +147,18 @@ public partial class App : Application
         // Initialize authentication after services are built
         var authService = _serviceProvider.GetRequiredService<IAuthenticateUserUseCase>();
         authService.InitializeAsync();
+
+        // Start background sync manager (flush queued offline operations)
+        try
+        {
+            var sync = _serviceProvider.GetRequiredService<ISyncManager>();
+            sync.Start();
+        }
+        catch (Exception ex)
+        {
+            var logger = _serviceProvider.GetService<ILogger<App>>();
+            logger?.LogWarning(ex, "Failed to start SyncManager");
+        }
 
         if (authService.State == AuthFlowState.Authenticated)
         {

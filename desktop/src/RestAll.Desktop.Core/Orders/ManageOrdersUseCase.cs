@@ -18,12 +18,20 @@ public sealed class ManageOrdersUseCase : IManageOrdersUseCase
     private readonly IOrderGateway _gateway;
     private readonly ICacheService _cache;
     private readonly ILogger<ManageOrdersUseCase> _logger;
+    private readonly RestAll.Desktop.Core.Offline.ISyncManager? _syncManager;
 
     public ManageOrdersUseCase(IOrderGateway gateway, ICacheService cache, ILogger<ManageOrdersUseCase> logger)
     {
         _gateway = gateway;
         _cache = cache;
         _logger = logger;
+    }
+
+    // Optional constructor with sync manager (DI will pick this if ISyncManager is registered)
+    public ManageOrdersUseCase(IOrderGateway gateway, ICacheService cache, ILogger<ManageOrdersUseCase> logger, RestAll.Desktop.Core.Offline.ISyncManager syncManager)
+        : this(gateway, cache, logger)
+    {
+        _syncManager = syncManager;
     }
 
     public async Task<List<Order>> GetOrdersAsync(CancellationToken cancellationToken)
@@ -85,15 +93,31 @@ public sealed class ManageOrdersUseCase : IManageOrdersUseCase
     public async Task<Order?> CreateOrderAsync(int tableId, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Creating order for table {TableId}", tableId);
-        var order = await _gateway.CreateOrderAsync(tableId, cancellationToken);
-        
-        if (order is not null)
+
+        try
         {
-            // Invalidate orders cache when new order is created
-            await _cache.RemoveAsync("orders", cancellationToken);
+            var order = await _gateway.CreateOrderAsync(tableId, cancellationToken);
+            if (order is not null)
+            {
+                // Invalidate orders cache when new order is created
+                await _cache.RemoveAsync("orders", cancellationToken);
+            }
+
+            return order;
         }
-        
-        return order;
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CreateOrder failed, falling back to offline enqueue for table {TableId}", tableId);
+            if (_syncManager is not null)
+            {
+                var tempOrder = await _syncManager.EnqueueCreateOrderAsync(tableId, cancellationToken);
+                // Invalidate cache to reflect pending order
+                await _cache.RemoveAsync("orders", cancellationToken);
+                return tempOrder;
+            }
+
+            throw;
+        }
     }
 
     public async Task<Order?> AddOrderItemsAsync(int orderId, List<OrderItem> items, CancellationToken cancellationToken)

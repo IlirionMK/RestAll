@@ -71,6 +71,19 @@ public class SqliteOfflineStorage : IOfflineStorage
         command3.CommandText = createMenuItemsTable;
         command3.ExecuteNonQuery();
         
+        var createOperationsTable = @"
+            CREATE TABLE IF NOT EXISTS operation_queue (
+                id TEXT PRIMARY KEY,
+                type TEXT NOT NULL,
+                payload TEXT NOT NULL,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )";
+
+        var command4 = connection.CreateCommand();
+        command4.CommandText = createOperationsTable;
+        command4.ExecuteNonQuery();
+        
         _logger.LogInformation("SQLite database initialized at {Path}", _databasePath);
     }
 
@@ -312,6 +325,103 @@ public class SqliteOfflineStorage : IOfflineStorage
         {
             _logger.LogError(ex, "Error checking if offline storage has data");
             return false;
+        }
+    }
+
+    // Operation queue methods
+    public async Task EnqueueOperationAsync(string id, string type, string payloadJson, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                INSERT INTO operation_queue (id, type, payload, attempts)
+                VALUES (@id, @type, @payload, 0)";
+
+            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@type", type);
+            command.Parameters.AddWithValue("@payload", payloadJson);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogDebug("Enqueued operation {Id} of type {Type}", id, type);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error enqueuing operation {Id}", id);
+        }
+    }
+
+    public async Task<List<(string Id, string Type, string Payload, int Attempts)>> GetPendingOperationsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT id, type, payload, attempts FROM operation_queue ORDER BY created_at ASC";
+
+            using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            var list = new List<(string, string, string, int)>();
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var id = reader.GetString(0);
+                var type = reader.GetString(1);
+                var payload = reader.GetString(2);
+                var attempts = reader.GetInt32(3);
+                list.Add((id, type, payload, attempts));
+            }
+
+            return list;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading pending operations");
+            return new List<(string, string, string, int)>();
+        }
+    }
+
+    public async Task RemoveOperationAsync(string id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "DELETE FROM operation_queue WHERE id = @id";
+            command.Parameters.AddWithValue("@id", id);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogDebug("Removed operation {Id} from queue", id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing operation {Id}", id);
+        }
+    }
+
+    public async Task IncrementOperationAttemptsAsync(string id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "UPDATE operation_queue SET attempts = attempts + 1 WHERE id = @id";
+            command.Parameters.AddWithValue("@id", id);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogDebug("Incremented attempts for operation {Id}", id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error incrementing attempts for operation {Id}", id);
         }
     }
 }
