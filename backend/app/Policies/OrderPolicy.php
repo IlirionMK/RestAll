@@ -45,15 +45,11 @@ class OrderPolicy
 
     public function pay(User $user, Order $order): bool
     {
-        if ($order->status !== OrderStatus::PENDING) {
+        if (! in_array($order->status, [OrderStatus::PENDING, OrderStatus::BILLING_REQUESTED])) {
             return false;
         }
 
-        if (in_array($user->role, [UserRole::ADMIN, UserRole::CASHIER, UserRole::WAITER])) {
-            return true;
-        }
-
-        return $user->id === $order->user_id;
+        return in_array($user->role, [UserRole::ADMIN, UserRole::CASHIER, UserRole::WAITER]);
     }
 
     public function close(User $user): bool

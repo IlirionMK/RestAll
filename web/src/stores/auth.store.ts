@@ -45,26 +45,20 @@ export const useAuthStore = defineStore('auth', () => {
     };
 
     const verify2FA = async (code: string) => {
-        try {
-            await API.auth.verify2FA({ code });
-            requires2FA.value = false;
-            await fetchUser();
-        } catch (error) {
-            throw error;
-        }
+        await API.auth.verify2FA({ code });
+        requires2FA.value = false;
+        await fetchUser();
     };
 
     const register = async (userData: any) => {
-        try {
-            await API.auth.register(userData);
-        } catch (error) {
-            throw error;
-        }
+        await API.auth.register(userData);
     };
 
     const logout = async () => {
         try {
             await API.auth.logout();
+        } catch {
+            // session may already be expired
         } finally {
             user.value = null;
             activeBooking.value = null;

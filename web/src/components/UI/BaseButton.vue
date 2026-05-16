@@ -40,6 +40,7 @@ const variantClasses: Record<string, string> = {
   secondary: 'bg-restall-green hover:opacity-90 text-restall-light shadow-lg shadow-restall-green/30',
   outline: 'border-2 border-white text-white hover:bg-white hover:text-restall-dark',
   ghost: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50',
-  danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/30'
+  danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/30',
+  link: 'text-restall-gold hover:opacity-70 bg-transparent p-0',
 };
 </script>

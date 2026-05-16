@@ -14,7 +14,7 @@
         </h4>
         <div class="flex items-center text-gray-400 font-bold text-xs uppercase tracking-tight">
           <MapPin class="w-4 h-4 mr-2 text-restall-green" />
-          {{ t('bookings.location_placeholder') }}
+          {{ booking.restaurant?.address || t('bookings.location_placeholder') }}
         </div>
       </div>
 

@@ -56,11 +56,7 @@ class ReservationPolicy
             return false;
         }
 
-        if (in_array($user->role, [UserRole::ADMIN, UserRole::WAITER])) {
-            return true;
-        }
-
-        return $user->id === $reservation->user_id;
+        return in_array($user->role, [UserRole::ADMIN, UserRole::WAITER]);
     }
 
     public function viewOrder(User $user, Reservation $reservation): bool

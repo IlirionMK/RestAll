@@ -51,6 +51,16 @@ class OrderController extends Controller
     )]
     public function index(ListOrdersRequest $request, ListActiveOrdersAction $action): JsonResponse
     {
+        if ($request->has('history')) {
+            $orders = Order::with(['table'])
+                ->when($request->validated('status'), fn ($q, $s) => $q->where('status', $s))
+                ->when($request->validated('date'), fn ($q, $d) => $q->whereDate('created_at', $d))
+                ->orderByDesc('created_at')
+                ->paginate(20);
+
+            return response()->json($orders, 200);
+        }
+
         $userId = $request->user()->id;
 
         return response()->json(

@@ -31,7 +31,8 @@ api.interceptors.response.use(
         }
 
         if (error.response?.status === 401) {
-            if (!window.location.pathname.includes('/login')) {
+            const isLogout = originalRequest.url?.includes('/auth/logout');
+            if (!isLogout && !window.location.pathname.includes('/login')) {
                 window.location.href = '/login';
             }
         }

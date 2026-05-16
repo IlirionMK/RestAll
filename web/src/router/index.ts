@@ -90,6 +90,15 @@ const routes: RouteRecordRaw[] = [
         children: [
             { path: '', name: 'KitchenDashboard', component: () => import('../pages/kitchen/KitchenDashboard.vue') }
         ]
+    },
+    {
+        path: '/waiter',
+        component: () => import('../layouts/WaiterLayout.vue'),
+        meta: { requiresAuth: true, role: 'waiter' },
+        children: [
+            { path: '',       name: 'WaiterDashboard', component: () => import('../pages/waiter/WaiterDashboard.vue') },
+            { path: 'orders', name: 'WaiterOrders',    component: () => import('../pages/waiter/WaiterOrders.vue') },
+        ]
     }
 ];
 

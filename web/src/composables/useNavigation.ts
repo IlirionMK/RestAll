@@ -61,7 +61,7 @@ export function useNavigation() {
         const role = authStore.userRole;
         const actions: any[] = [];
 
-        if (!role || role === UserRole.USER || role === 'guest') {
+        if (!role || role === UserRole.GUEST) {
             actions.push({
                 label: 'public.my_bookings',
                 name: 'UserBookings',
@@ -73,6 +73,8 @@ export function useNavigation() {
             actions.unshift({ label: 'public.dashboard', name: 'AdminDashboard', icon: LayoutDashboard });
         } else if (role === UserRole.CHEF) {
             actions.unshift({ label: 'public.dashboard', name: 'KitchenDashboard', icon: LayoutDashboard });
+        } else if (role === UserRole.WAITER) {
+            actions.unshift({ label: 'public.dashboard', name: 'WaiterDashboard', icon: LayoutDashboard });
         }
 
         return actions;

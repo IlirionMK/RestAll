@@ -92,7 +92,10 @@
     "2fa_title": "Weryfikacja dwuetapowa",
     "2fa_code": "Wprowadź 6-cyfrowy kod",
     "verify": "Zweryfikuj kod",
-    "back_to_login": "Powrót do logowania"
+    "back_to_login": "Powrót do logowania",
+    "or_continue_with": "lub kontynuuj przez",
+    "error_oauth": "Błąd autoryzacji OAuth. Spróbuj ponownie.",
+    "error_registration": "Rejestracja nie powiodła się. Sprawdź swoje dane."
   },
   "security": {
     "2fa_title": "Uwierzytelnianie dwuetapowe (2FA)",
@@ -113,12 +116,17 @@
   },
   "role": {
     "admin": "Administrator",
+    "cashier": "Kasjer",
     "chef": "Szef kuchni",
     "waiter": "Kelner",
     "guest": "Gość"
   },
   "admin": {
-    "logout": "Wyloguj się"
+    "logout": "Wyloguj się",
+    "dashboard": "Panel sterowania",
+    "menu": "Menu",
+    "staff": "Personel",
+    "logs": "Dzienniki"
   },
   "order": {
     "table": "Stolik",
@@ -141,7 +149,10 @@
     "takeaway_hint": "Odbiór osobisty",
     "status_pending": "W trakcie",
     "status_billing_requested": "Rachunek zamówiony",
-    "status_paid": "Opłacone"
+    "status_paid": "Opłacone",
+    "waiting_title": "Oczekiwanie na miejsce",
+    "waiting_desc": "Twój stolik jest zarezerwowany. Personel uruchomi zamówienie przy przyjeździe.",
+    "bill_on_way": "Obsługa jest w drodze z rachunkiem."
   },
   "errors": {
     "table_occupied": "Ten stolik jest już zajęty w wybranym terminie.",
@@ -154,5 +165,41 @@
     "explore": "Eksploruj",
     "support": "Wsparcie",
     "follow_us": "Obserwuj nas"
+  },
+  "staff": {
+    "notifications": "Powiadomienia",
+    "mark_all_read": "Oznacz wszystkie",
+    "no_notifications": "Brak powiadomień",
+    "edit_profile": "Edytuj profil",
+    "your_name": "Twoje imię",
+    "save": "Zapisz",
+    "saving": "Zapisywanie...",
+    "language": "Język",
+    "theme": "Motyw",
+    "theme_dark": "Ciemny",
+    "theme_light": "Jasny",
+    "sign_out": "Wyloguj"
+  },
+  "notif": {
+    "billing_requested": "prosi o rachunek",
+    "kitchen_ready": "gotowe",
+    "items_added": "Nowe pozycje dodane",
+    "table": "Stolik",
+    "takeaway": "Na wynos",
+    "order": "Zamówienie",
+    "just_now": "Przed chwilą",
+    "min_ago": "{n} min temu"
+  },
+  "waiter": {
+    "dashboard": "Widok sali",
+    "orders": "Historia zamówień",
+    "history_title": "Historia zamówień",
+    "filter_all": "Wszystkie",
+    "filter_pending": "W trakcie",
+    "filter_billing": "Rachunek",
+    "filter_paid": "Opłacone",
+    "no_orders": "Brak zamówień",
+    "order_no": "Zamówienie #",
+    "date_label": "Data"
   }
 }

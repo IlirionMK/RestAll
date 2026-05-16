@@ -2,23 +2,21 @@
 import { watch } from 'vue';
 import { echo } from './echo';
 import { useAuthStore } from '@/stores/auth.store';
+import { useToast } from '@/composables/useToast';
+import ToastNotification from '@/components/UI/ToastNotification.vue';
 
 const auth = useAuthStore();
+const { warning } = useToast();
 
-echo.channel('test-channel')
-    .listen('.test.event', (data: any) => {
-      console.log('Real-time notification:', data.content);
-    });
+watch(() => auth.user, (user, prevUser) => {
+  if (prevUser?.restaurant_id) {
+    echo.leave(`restaurant.${prevUser.restaurant_id}.staff`);
+  }
 
-watch(() => auth.user, (user) => {
   if (user?.restaurant_id) {
     echo.private(`restaurant.${user.restaurant_id}.staff`)
         .listen('.order.billing_requested', (data: any) => {
-          console.log('!!! BILL REQUEST RECEIVED !!!', data);
-          alert(`Table ${data.table_number} requested the bill!`);
-        })
-        .error((err: any) => {
-          console.error('Subscription error details:', err);
+          warning(`Table ${data.table_number} requested the bill!`);
         });
   }
 }, { immediate: true });
@@ -26,4 +24,5 @@ watch(() => auth.user, (user) => {
 
 <template>
   <router-view />
+  <ToastNotification />
 </template>

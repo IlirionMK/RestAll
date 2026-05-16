@@ -14,6 +14,10 @@ class ListOrdersRequest extends FormRequest
 
     public function rules(): array
     {
-        return [];
+        return [
+            'history' => ['sometimes'],
+            'status'  => ['sometimes', 'string', \Illuminate\Validation\Rule::in(['pending', 'billing_requested', 'paid'])],
+            'date'    => ['sometimes', 'date_format:Y-m-d'],
+        ];
     }
 }

@@ -28,8 +28,8 @@ export const OrdersService = {
         return api.get<OrderContext>('/api/orders/context');
     },
 
-    index() {
-        return api.get('/api/orders');
+    index(params?: { history?: boolean; status?: string; date?: string }) {
+        return api.get('/api/orders', { params });
     },
 
     store(data: OrderCreateData) {

@@ -92,7 +92,10 @@
     "2fa_title": "Two-Factor Verification",
     "2fa_code": "Enter 6-digit Code",
     "verify": "Verify Code",
-    "back_to_login": "Back to login"
+    "back_to_login": "Back to login",
+    "or_continue_with": "or continue with",
+    "error_oauth": "OAuth authentication failed. Please try again.",
+    "error_registration": "Registration failed. Please check your details and try again."
   },
   "security": {
     "2fa_title": "Two-Factor Authentication (2FA)",
@@ -113,12 +116,17 @@
   },
   "role": {
     "admin": "Administrator",
+    "cashier": "Cashier",
     "chef": "Chef",
     "waiter": "Waiter",
     "guest": "Guest"
   },
   "admin": {
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "dashboard": "Dashboard",
+    "menu": "Menu",
+    "staff": "Staff",
+    "logs": "Logs"
   },
   "order": {
     "table": "Table",
@@ -141,7 +149,10 @@
     "takeaway_hint": "I will pick up the order myself",
     "status_pending": "In progress",
     "status_billing_requested": "Bill requested",
-    "status_paid": "Paid"
+    "status_paid": "Paid",
+    "waiting_title": "Waiting to be seated",
+    "waiting_desc": "Your table is reserved. Staff will start your order when you arrive.",
+    "bill_on_way": "Staff is on their way with your bill."
   },
   "errors": {
     "table_occupied": "Table already occupied.",
@@ -154,5 +165,41 @@
     "explore": "Explore",
     "support": "Support",
     "follow_us": "Follow Us"
+  },
+  "staff": {
+    "notifications": "Notifications",
+    "mark_all_read": "Mark all read",
+    "no_notifications": "No notifications yet",
+    "edit_profile": "Edit Profile",
+    "your_name": "Your name",
+    "save": "Save",
+    "saving": "Saving...",
+    "language": "Language",
+    "theme": "Theme",
+    "theme_dark": "Dark",
+    "theme_light": "Light",
+    "sign_out": "Sign Out"
+  },
+  "notif": {
+    "billing_requested": "requested the bill",
+    "kitchen_ready": "is ready",
+    "items_added": "New items added",
+    "table": "Table",
+    "takeaway": "Take Away",
+    "order": "Order",
+    "just_now": "Just now",
+    "min_ago": "{n} min ago"
+  },
+  "waiter": {
+    "dashboard": "Floor View",
+    "orders": "Order History",
+    "history_title": "Order History",
+    "filter_all": "All",
+    "filter_pending": "In Progress",
+    "filter_billing": "Bill Requested",
+    "filter_paid": "Paid",
+    "no_orders": "No orders found",
+    "order_no": "Order #",
+    "date_label": "Date"
   }
 }
