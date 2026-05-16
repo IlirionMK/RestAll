@@ -41,10 +41,12 @@ public sealed class GetMenuUseCase : IGetMenuUseCase
             _logger.LogInformation("Cache MISS for {CacheKey} - fetching from API", cacheKey);
             var categories = await _gateway.GetCategoriesAsync(cancellationToken);
 
-            // try saving to offline storage (best-effort)
+            // Save to offline storage and update sync time
             try
             {
                 await _offline.SaveMenuCategoriesAsync(categories, cancellationToken);
+                await _offline.SetSyncTimeAsync("menu_categories", DateTime.UtcNow, cancellationToken);
+                _logger.LogDebug("Saved menu categories to offline storage with sync time");
             }
             catch (Exception ex)
             {
@@ -89,9 +91,12 @@ public sealed class GetMenuUseCase : IGetMenuUseCase
             _logger.LogInformation("Cache MISS for {CacheKey} - fetching from API", cacheKey);
             var items = await _gateway.GetItemsAsync(cancellationToken);
 
+            // Save to offline storage and update sync time
             try
             {
                 await _offline.SaveMenuItemsAsync(items, cancellationToken);
+                await _offline.SetSyncTimeAsync("menu_items", DateTime.UtcNow, cancellationToken);
+                _logger.LogDebug("Saved menu items to offline storage with sync time");
             }
             catch (Exception ex)
             {

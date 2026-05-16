@@ -11,6 +11,7 @@ public interface IManageOrdersUseCase
     Task<Order?> AddOrderItemsAsync(int orderId, List<OrderItem> items, CancellationToken cancellationToken);
     Task<bool> RemoveOrderItemAsync(int orderId, int orderItemId, CancellationToken cancellationToken);
     Task<bool> PayOrderAsync(int orderId, CancellationToken cancellationToken);
+    Task<bool> RequestBillAsync(int orderId, CancellationToken cancellationToken);
 }
 
 public sealed class ManageOrdersUseCase : IManageOrdersUseCase
@@ -163,5 +164,11 @@ public sealed class ManageOrdersUseCase : IManageOrdersUseCase
         }
         
         return result;
+    }
+
+    public async Task<bool> RequestBillAsync(int orderId, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Requesting bill for order {OrderId}", orderId);
+        return await _gateway.RequestBillAsync(orderId, cancellationToken);
     }
 }

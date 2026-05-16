@@ -64,6 +64,13 @@ public partial class MainWindow : Window
         adminView.Show();
     }
 
+    private void OpenMenuManagement_Click(object sender, RoutedEventArgs e)
+    {
+        var menuManagementView = ((App)Application.Current).CreateMenuManagementView();
+        menuManagementView.Closed += (s, args) => ((CancelableViewModelBase)menuManagementView.DataContext).Dispose();
+        menuManagementView.Show();
+    }
+
     private async void Logout_Click(object sender, RoutedEventArgs e)
     {
         await _viewModel.LogoutCommand.ExecuteAsync();

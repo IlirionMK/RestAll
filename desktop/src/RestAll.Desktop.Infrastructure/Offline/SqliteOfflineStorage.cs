@@ -14,6 +14,7 @@ public class SqliteOfflineStorage : IOfflineStorage
     private const string OrdersTable = "orders";
     private const string MenuCategoriesTable = "menu_categories";
     private const string MenuItemsTable = "menu_items";
+    private const string SyncMetadataTable = "sync_metadata";
 
     public SqliteOfflineStorage(ILogger<SqliteOfflineStorage> logger)
     {
@@ -59,6 +60,13 @@ public class SqliteOfflineStorage : IOfflineStorage
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )";
         
+        var createSyncMetadataTable = @"
+            CREATE TABLE IF NOT EXISTS sync_metadata (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )";
+        
         var command1 = connection.CreateCommand();
         command1.CommandText = createOrdersTable;
         command1.ExecuteNonQuery();
@@ -70,6 +78,10 @@ public class SqliteOfflineStorage : IOfflineStorage
         var command3 = connection.CreateCommand();
         command3.CommandText = createMenuItemsTable;
         command3.ExecuteNonQuery();
+        
+        var command5 = connection.CreateCommand();
+        command5.CommandText = createSyncMetadataTable;
+        command5.ExecuteNonQuery();
         
         var createOperationsTable = @"
             CREATE TABLE IF NOT EXISTS operation_queue (
@@ -422,6 +434,64 @@ public class SqliteOfflineStorage : IOfflineStorage
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error incrementing attempts for operation {Id}", id);
+        }
+    }
+
+    // Sync metadata methods
+    public async Task SetSyncTimeAsync(string entityKey, DateTime syncTime, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                INSERT OR REPLACE INTO sync_metadata (key, value, updated_at)
+                VALUES (@key, @value, @updated_at)";
+
+            command.Parameters.AddWithValue("@key", entityKey);
+            command.Parameters.AddWithValue("@value", syncTime.ToString("O")); // ISO 8601 format
+            command.Parameters.AddWithValue("@updated_at", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogDebug("Set sync time for {Key} to {Time}", entityKey, syncTime);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting sync time for {Key}", entityKey);
+        }
+    }
+
+    public async Task<DateTime?> GetSyncTimeAsync(string entityKey, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT value FROM sync_metadata WHERE key = @key";
+            command.Parameters.AddWithValue("@key", entityKey);
+
+            var result = await command.ExecuteScalarAsync(cancellationToken);
+            if (result != null && result != DBNull.Value)
+            {
+                var valueStr = result.ToString();
+                if (DateTime.TryParse(valueStr, out var syncTime))
+                {
+                    _logger.LogDebug("Retrieved sync time for {Key}: {Time}", entityKey, syncTime);
+                    return syncTime;
+                }
+            }
+
+            _logger.LogDebug("No sync time found for {Key}", entityKey);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting sync time for {Key}", entityKey);
+            return null;
         }
     }
 }

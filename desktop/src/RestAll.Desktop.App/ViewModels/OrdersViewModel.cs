@@ -1,3 +1,4 @@
+using System.Windows.Media;
 using RestAll.Desktop.Core.Orders;
 using RestAll.Desktop.Core.Realtime;
 
@@ -16,6 +17,9 @@ public class OrdersViewModel : CancelableViewModelBase
     private string _addItemComment = "";
     private string _removeItemOrderId = "";
     private string _removeItemOrderItemId = "";
+    private int? _billRequestedOrderId;
+    private Brush _billStatusColor = Brushes.Black;
+    private string _requestBillOrderId = "";
 
     public OrdersViewModel(IManageOrdersUseCase ordersUseCase, IRealtimeService realtimeService)
     {
@@ -31,6 +35,7 @@ public class OrdersViewModel : CancelableViewModelBase
         CreateOrderCommand = new AsyncRelayCommand(CreateOrderAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(NewOrderTableId));
         AddItemCommand = new AsyncRelayCommand(AddItemAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(AddItemOrderId) && !string.IsNullOrWhiteSpace(AddItemMenuItemId));
         RemoveItemCommand = new AsyncRelayCommand(RemoveItemAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(RemoveItemOrderId) && !string.IsNullOrWhiteSpace(RemoveItemOrderItemId));
+        RequestBillCommand = new AsyncRelayCommand<int>(RequestBillAsync, _ => !IsLoading);
     }
 
     public List<Order> Orders
@@ -81,11 +86,30 @@ public class OrdersViewModel : CancelableViewModelBase
         set => SetProperty(ref _removeItemOrderItemId, value);
     }
 
+    public int? BillRequestedOrderId
+    {
+        get => _billRequestedOrderId;
+        set => SetProperty(ref _billRequestedOrderId, value);
+    }
+
+    public Brush BillStatusColor
+    {
+        get => _billStatusColor;
+        set => SetProperty(ref _billStatusColor, value);
+    }
+
+    public string RequestBillOrderId
+    {
+        get => _requestBillOrderId;
+        set => SetProperty(ref _requestBillOrderId, value);
+    }
+
     public IAsyncRelayCommand LoadOrdersCommand { get; }
     public IAsyncRelayCommand<int> PayOrderCommand { get; }
     public IAsyncRelayCommand CreateOrderCommand { get; }
     public IAsyncRelayCommand AddItemCommand { get; }
     public IAsyncRelayCommand RemoveItemCommand { get; }
+    public IAsyncRelayCommand<int> RequestBillCommand { get; }
 
     protected override void OnIsLoadingChanged()
     {
@@ -94,6 +118,7 @@ public class OrdersViewModel : CancelableViewModelBase
         CreateOrderCommand.NotifyCanExecuteChanged();
         AddItemCommand.NotifyCanExecuteChanged();
         RemoveItemCommand.NotifyCanExecuteChanged();
+        RequestBillCommand.NotifyCanExecuteChanged();
     }
 
     protected override void OnPropertyChanged(string? propertyName)
@@ -255,6 +280,34 @@ public class OrdersViewModel : CancelableViewModelBase
             StatusMessage = $"Error removing item: {ex.Message}";
         }
     }
+
+    private async Task RequestBillAsync(int orderId)
+    {
+        try
+        {
+            var result = await _ordersUseCase.RequestBillAsync(orderId, GetCancellationToken().Token);
+            
+            if (result)
+            {
+                BillRequestedOrderId = orderId;
+                BillStatusColor = Brushes.Orange;
+                StatusMessage = $"Bill requested for order {orderId}. Waiting for waiter...";
+                await LoadOrdersAsync();
+            }
+            else
+            {
+                StatusMessage = $"Failed to request bill for order {orderId}.";
+                BillStatusColor = Brushes.Red;
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error requesting bill: {ex.Message}";
+            BillStatusColor = Brushes.Red;
+        }
+    }
+
+
 
     protected override void OnDispose()
     {

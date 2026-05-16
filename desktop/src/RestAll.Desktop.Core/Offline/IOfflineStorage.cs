@@ -13,4 +13,8 @@ public interface IOfflineStorage
     Task SaveMenuItemsAsync(List<MenuItem> items, CancellationToken cancellationToken = default);
     Task ClearAllAsync(CancellationToken cancellationToken = default);
     Task<bool> HasDataAsync(CancellationToken cancellationToken = default);
+    
+    // Sync metadata methods
+    Task SetSyncTimeAsync(string entityKey, DateTime syncTime, CancellationToken cancellationToken = default);
+    Task<DateTime?> GetSyncTimeAsync(string entityKey, CancellationToken cancellationToken = default);
 }

@@ -4,5 +4,6 @@ public enum OrderStatus
 {
     Pending = 0,
     InProgress = 1,
-    Paid = 2
+    BillingRequested = 2,
+    Paid = 3
 }

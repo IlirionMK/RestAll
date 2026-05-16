@@ -66,6 +66,7 @@ public partial class App : Application
         // Register Core services
         services.AddSingleton<IAuthenticateUserUseCase, AuthenticateUserUseCase>();
         services.AddTransient<IGetMenuUseCase, GetMenuUseCase>();
+        services.AddTransient<IManageMenuUseCase, ManageMenuUseCase>();
         services.AddTransient<ITableManagementUseCase, TableManagementUseCase>();
         services.AddTransient<IManageOrdersUseCase, ManageOrdersUseCase>();
         services.AddTransient<IManageKitchenUseCase, ManageKitchenUseCase>();
@@ -161,6 +162,7 @@ public partial class App : Application
         services.AddTransient<ResetPasswordViewModel>();
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<MenuViewModel>();
+        services.AddTransient<MenuManagementViewModel>();
         services.AddTransient<TablesViewModel>();
         services.AddTransient<OrdersViewModel>();
         services.AddTransient<KitchenViewModel>();
@@ -213,6 +215,14 @@ public partial class App : Application
     {
         var menuViewModel = _serviceProvider.GetRequiredService<MenuViewModel>();
         return new MenuView(menuViewModel);
+    }
+
+    public MenuManagementView CreateMenuManagementView()
+    {
+        var menuManagementViewModel = _serviceProvider.GetRequiredService<MenuManagementViewModel>();
+        var view = new MenuManagementView(menuManagementViewModel);
+        _ = menuManagementViewModel.InitializeAsync();
+        return view;
     }
 
     public TablesView CreateTablesView()

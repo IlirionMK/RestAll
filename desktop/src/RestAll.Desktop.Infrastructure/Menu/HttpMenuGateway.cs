@@ -117,6 +117,147 @@ public sealed class HttpMenuGateway : IMenuGateway
         }
     }
 
+    public async Task<MenuItem?> CreateItemAsync(MenuItemRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var endpoint = $"{_options.BaseUrl}/menu/items";
+            _logger.LogInformation("Creating menu item: {Name}", request.Name);
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(request),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _httpClient.PostAsync(endpoint, content, cancellationToken);
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to create menu item (HTTP {StatusCode}): {Response}",
+                    response.StatusCode, responseContent);
+                return null;
+            }
+
+            var data = JsonSerializer.Deserialize<JsonElement>(responseContent);
+            var menuItem = ParseMenuItem(data);
+
+            if (menuItem is not null)
+            {
+                _logger.LogInformation("Menu item created successfully with ID {Id}", menuItem.Id);
+            }
+
+            return menuItem;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating menu item");
+            return null;
+        }
+    }
+
+    public async Task<MenuItem?> UpdateItemAsync(int id, MenuItemRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var endpoint = $"{_options.BaseUrl}/menu/items/{id}";
+            _logger.LogInformation("Updating menu item {Id}: {Name}", id, request.Name);
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(request),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _httpClient.PutAsync(endpoint, content, cancellationToken);
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to update menu item (HTTP {StatusCode}): {Response}",
+                    response.StatusCode, responseContent);
+                return null;
+            }
+
+            var data = JsonSerializer.Deserialize<JsonElement>(responseContent);
+            var menuItem = ParseMenuItem(data);
+
+            if (menuItem is not null)
+            {
+                _logger.LogInformation("Menu item {Id} updated successfully", id);
+            }
+
+            return menuItem;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating menu item {Id}", id);
+            return null;
+        }
+    }
+
+    public async Task<bool> ToggleAvailabilityAsync(int id, bool isAvailable, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var endpoint = $"{_options.BaseUrl}/menu/items/{id}/availability";
+            _logger.LogInformation("Toggling availability for menu item {Id}: {IsAvailable}", id, isAvailable);
+
+            var requestBody = new { is_available = isAvailable };
+            var content = new StringContent(
+                JsonSerializer.Serialize(requestBody),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _httpClient.PatchAsync(endpoint, content, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("Failed to toggle availability (HTTP {StatusCode}): {Response}",
+                    response.StatusCode, responseContent);
+                return false;
+            }
+
+            _logger.LogInformation("Menu item {Id} availability toggled to {IsAvailable}", id, isAvailable);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling availability for menu item {Id}", id);
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteItemAsync(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var endpoint = $"{_options.BaseUrl}/menu/items/{id}";
+            _logger.LogInformation("Deleting menu item {Id}", id);
+
+            var response = await _httpClient.DeleteAsync(endpoint, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("Failed to delete menu item (HTTP {StatusCode}): {Response}",
+                    response.StatusCode, responseContent);
+                return false;
+            }
+
+            _logger.LogInformation("Menu item {Id} deleted successfully", id);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting menu item {Id}", id);
+            return false;
+        }
+    }
+
     private MenuCategory? ParseCategory(JsonElement element, out int rejectedItemCount, out List<string> rejectedExamples, out List<string> rejectedReasonCodes)
     {
         rejectedItemCount = 0;
@@ -229,5 +370,30 @@ public sealed class HttpMenuGateway : IMenuGateway
         if (reason.Contains("id wrong type")) return "ID_WRONG_TYPE";
         if (reason.Contains("name wrong")) return "NAME_WRONG_TYPE";
         return "OTHER_PARSE_ERROR";
+    }
+
+    private static MenuItem? ParseMenuItem(JsonElement element)
+    {
+        if (!JsonParserHelper.TryGetIntProperty(element, "id", out var id))
+            return null;
+
+        if (!JsonParserHelper.TryGetStringProperty(element, "name", out var name))
+            return null;
+
+        if (!JsonParserHelper.TryGetDecimalProperty(element, "price", out var price))
+            return null;
+
+        var hasIsAvailable = JsonParserHelper.TryGetBoolProperty(element, "is_available", out var isAvailable1);
+        var hasAvailable = JsonParserHelper.TryGetBoolProperty(element, "available", out var isAvailable2);
+        if (!hasIsAvailable && !hasAvailable)
+            return null;
+        var isAvailable = hasIsAvailable ? isAvailable1 : isAvailable2;
+
+        var description = JsonParserHelper.TryGetStringProperty(element, "description", out var desc) ? desc ?? string.Empty : string.Empty;
+        var photoUrl = JsonParserHelper.TryGetStringProperty(element, "photo_url", out var photo) ? photo : null;
+        var menuCategoryId = JsonParserHelper.TryGetIntProperty(element, "menu_category_id", out var catId) ? catId : 0;
+        var categoryName = JsonParserHelper.TryGetNestedStringProperty(element, "category", "name", out var catName) ? catName : null;
+
+        return new MenuItem(id, name ?? string.Empty, description, price, photoUrl, isAvailable, menuCategoryId, categoryName);
     }
 }

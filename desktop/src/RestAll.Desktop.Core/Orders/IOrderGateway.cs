@@ -8,4 +8,5 @@ public interface IOrderGateway
     Task<Order?> AddOrderItemsAsync(int orderId, List<OrderItem> items, CancellationToken cancellationToken);
     Task<bool> RemoveOrderItemAsync(int orderId, int orderItemId, CancellationToken cancellationToken);
     Task<bool> PayOrderAsync(int orderId, CancellationToken cancellationToken);
+    Task<bool> RequestBillAsync(int orderId, CancellationToken cancellationToken);
 }

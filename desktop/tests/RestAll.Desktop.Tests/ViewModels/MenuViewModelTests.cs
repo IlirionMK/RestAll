@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Moq;
 using RestAll.Desktop.Core.Menu;
+using RestAll.Desktop.Core.Offline;
 using RestAll.Desktop.App.ViewModels;
 using Xunit;
 
@@ -9,12 +10,14 @@ namespace RestAll.Desktop.Tests.ViewModels;
 public class MenuViewModelTests
 {
     private readonly Mock<IGetMenuUseCase> _mockUseCase;
+    private readonly Mock<IOfflineStorage> _mockOfflineStorage;
     private readonly MenuViewModel _viewModel;
 
     public MenuViewModelTests()
     {
         _mockUseCase = new Mock<IGetMenuUseCase>();
-        _viewModel = new MenuViewModel(_mockUseCase.Object);
+        _mockOfflineStorage = new Mock<IOfflineStorage>();
+        _viewModel = new MenuViewModel(_mockUseCase.Object, _mockOfflineStorage.Object);
     }
 
     [Fact]

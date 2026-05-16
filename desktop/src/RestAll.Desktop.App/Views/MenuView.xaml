@@ -9,15 +9,42 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <TextBlock Text="{DynamicResource MenuTitle}" 
                    FontSize="28" 
                    FontWeight="Bold" 
-                   Margin="0,0,0,20"/>
+                   Margin="0,0,0,10"/>
 
-        <Button Grid.Row="1" 
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock x:Name="OfflineIndicator"
+                       Text="⚠️ OFFLINE MODE" 
+                       Foreground="Orange"
+                       FontWeight="Bold"
+                       FontSize="14"
+                       VerticalAlignment="Center"
+                       Margin="0,0,20,0"
+                       Visibility="Collapsed">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsOfflineMode}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <TextBlock Text="{Binding LastSyncTime}" 
+                       FontSize="12"
+                       Foreground="Gray"
+                       VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <Button Grid.Row="2" 
                 Content="{DynamicResource LoadMenuButton}" 
                 Height="35" 
                 Width="150" 
@@ -25,13 +52,13 @@
                 Command="{Binding LoadMenuCommand}"
                 Margin="0,0,0,20"/>
 
-        <TextBlock Grid.Row="1" 
+        <TextBlock Grid.Row="2" 
                    Text="{Binding StatusMessage}" 
                    HorizontalAlignment="Right"
                    VerticalAlignment="Center"
                    Margin="0,0,0,20"/>
 
-        <ScrollViewer Grid.Row="2">
+        <ScrollViewer Grid.Row="3">
             <ItemsControl ItemsSource="{Binding Categories}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>

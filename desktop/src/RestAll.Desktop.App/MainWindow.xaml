@@ -33,6 +33,12 @@
                 </StackPanel>
                 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="🍽️ Menu Management" 
+                            Height="30" 
+                            Width="130"
+                            Margin="0,0,10,0"
+                            Click="OpenMenuManagement_Click"
+                            Visibility="{Binding CanOpenMenuManagement, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                     <Button Content="{DynamicResource OpenAdminButton}" 
                             Height="30" 
                             Width="110"

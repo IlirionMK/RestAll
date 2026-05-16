@@ -8,6 +8,10 @@
                 <ResourceDictionary Source="Resources.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converters:BoolToBackgroundConverter x:Key="BoolToBackgroundConverter"/>
+            <converters:BoolToAvailabilityTextConverter x:Key="BoolToAvailabilityTextConverter"/>
+            <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+            <converters:BoolToToggleTextConverter x:Key="BoolToToggleTextConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

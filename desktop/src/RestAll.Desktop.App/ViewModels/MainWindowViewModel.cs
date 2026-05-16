@@ -9,6 +9,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     private readonly IRealtimeService _realtimeService;
     private string _userInfo = "";
     private bool _canOpenAdminDashboard;
+    private bool _canOpenMenuManagement;
 
     public MainWindowViewModel(IAuthenticateUserUseCase authUseCase, IRealtimeService realtimeService)
     {
@@ -33,6 +34,12 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         set => SetProperty(ref _canOpenAdminDashboard, value);
     }
 
+    public bool CanOpenMenuManagement
+    {
+        get => _canOpenMenuManagement;
+        set => SetProperty(ref _canOpenMenuManagement, value);
+    }
+
     public IAsyncRelayCommand LogoutCommand { get; }
 
     private void LoadUserInfo()
@@ -41,11 +48,14 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         {
             UserInfo = $"Logged in as: {_authUseCase.CurrentSession.FullName} ({_authUseCase.CurrentSession.Role})";
             CanOpenAdminDashboard = _authUseCase.CurrentSession.Role.Equals("admin", StringComparison.OrdinalIgnoreCase);
+            CanOpenMenuManagement = _authUseCase.CurrentSession.Role.Equals("admin", StringComparison.OrdinalIgnoreCase) ||
+                                    _authUseCase.CurrentSession.Role.Equals("manager", StringComparison.OrdinalIgnoreCase);
         }
         else
         {
             UserInfo = string.Empty;
             CanOpenAdminDashboard = false;
+            CanOpenMenuManagement = false;
         }
     }
 

@@ -1,0 +1,240 @@
+<Window x:Class="RestAll.Desktop.App.Views.MenuManagementView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RestAll - Menu Management" 
+        Height="600" 
+        Width="900"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <TextBlock Text="🍽️ Menu Management" 
+                       FontSize="24" 
+                       FontWeight="Bold" 
+                       VerticalAlignment="Center"/>
+            <TextBlock Text=" (Admin/Manager)" 
+                       FontSize="14" 
+                       Foreground="Gray" 
+                       VerticalAlignment="Center" 
+                       Margin="10,0,0,0"/>
+            
+            <Button Content="➕ Add New Item" 
+                    Height="35" 
+                    Margin="20,0,10,0"
+                    Command="{Binding AddItemCommand}"
+                    Background="#4CAF50"
+                    Foreground="White"
+                    FontWeight="SemiBold"
+                    Padding="15,5"/>
+            
+            <Button Content="🔄 Refresh" 
+                    Height="35" 
+                    Margin="0,0,0,0"
+                    Command="{Binding RefreshCommand}"
+                    Background="#2196F3"
+                    Foreground="White"
+                    FontWeight="SemiBold"
+                    Padding="15,5"/>
+        </StackPanel>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1.5*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: Menu Items List -->
+            <GroupBox Grid.Column="0" Header="Menu Items" Margin="0,0,10,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <ItemsControl ItemsSource="{Binding Categories}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Expander Header="{Binding Name}" 
+                                              IsExpanded="True" 
+                                              Margin="0,5"
+                                              FontWeight="Bold">
+                                        <ItemsControl ItemsSource="{Binding Items}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="{Binding IsAvailable, Converter={StaticResource BoolToBackgroundConverter}}"
+                                                            BorderBrush="#DDD"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Margin="0,2"
+                                                            Padding="10,8">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="100"/>
+                                                                <ColumnDefinition Width="100"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            
+                                                            <StackPanel Grid.Column="0">
+                                                                <TextBlock Text="{Binding Name}" 
+                                                                           FontWeight="SemiBold"
+                                                                           FontSize="14"/>
+                                                                <TextBlock Text="{Binding Description}" 
+                                                                           FontSize="11" 
+                                                                           Foreground="Gray"
+                                                                           TextWrapping="Wrap"
+                                                                           Margin="0,3,0,0"/>
+                                                            </StackPanel>
+                                                            
+                                                            <TextBlock Grid.Column="1" 
+                                                                       Text="{Binding Price, StringFormat={}{0:C}}" 
+                                                                       FontWeight="Bold"
+                                                                       FontSize="14"
+                                                                       VerticalAlignment="Center"
+                                                                       HorizontalAlignment="Right"
+                                                                       Margin="0,0,10,0"/>
+                                                            
+                                                            <StackPanel Grid.Column="2" 
+                                                                        Orientation="Horizontal" 
+                                                                        VerticalAlignment="Center" 
+                                                                        HorizontalAlignment="Right">
+                                                                <Button Content="{Binding IsAvailable, Converter={StaticResource BoolToAvailabilityTextConverter}}"
+                                                                        Background="Transparent"
+                                                                        BorderThickness="0"
+                                                                        Foreground="{Binding IsAvailable, Converter={StaticResource BoolToColorConverter}}"
+                                                                        FontWeight="SemiBold"
+                                                                        FontSize="11"
+                                                                        Padding="5,2"
+                                                                        Cursor="Hand"/>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Expander>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </GroupBox>
+
+            <!-- Right: Edit Form -->
+            <GroupBox Grid.Column="1" Header="Item Details" Margin="10,0,0,0">
+                <StackPanel Margin="10">
+                    <TextBlock Text="Name" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding ItemName, UpdateSourceTrigger=PropertyChanged}"
+                             Height="30" 
+                             Margin="0,0,0,15"
+                             Padding="5"
+                             FontSize="13"
+                             IsEnabled="{Binding IsEditing}"/>
+
+                    <TextBlock Text="Description" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding ItemDescription, UpdateSourceTrigger=PropertyChanged}"
+                             Height="60" 
+                             Margin="0,0,0,15"
+                             Padding="5"
+                             FontSize="13"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             IsEnabled="{Binding IsEditing}"/>
+
+                    <TextBlock Text="Price (PLN)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding ItemPrice, UpdateSourceTrigger=PropertyChanged}"
+                             Height="30" 
+                             Margin="0,0,0,15"
+                             Padding="5"
+                             FontSize="13"
+                             IsEnabled="{Binding IsEditing}"/>
+
+                    <TextBlock Text="Category" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <ComboBox ItemsSource="{Binding CategoryIds}"
+                              SelectedItem="{Binding SelectedCategoryId}"
+                              Height="30" 
+                              Margin="0,0,0,15"
+                              Padding="5"
+                              FontSize="13"
+                              IsEnabled="{Binding IsEditing}"/>
+
+                    <TextBlock Text="Photo URL (optional)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding ItemPhotoUrl, UpdateSourceTrigger=PropertyChanged}"
+                             Height="30" 
+                             Margin="0,0,0,15"
+                             Padding="5"
+                             FontSize="13"
+                             IsEnabled="{Binding IsEditing}"/>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="💾 Save" 
+                                Height="35" 
+                                Width="100"
+                                Command="{Binding SaveItemCommand}"
+                                Background="#4CAF50"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        
+                        <Button Content="❌ Cancel" 
+                                Height="35" 
+                                Width="100"
+                                Margin="10,0,0,0"
+                                Command="{Binding CancelEditCommand}"
+                                Background="#9E9E9E"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    </StackPanel>
+
+                    <Separator Margin="0,15"/>
+
+                    <TextBlock Text="Item Actions" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                    
+                    <Button Content="✏️ Edit Item" 
+                            Height="35" 
+                            Margin="0,0,0,8"
+                            Command="{Binding SaveItemCommand}"
+                            Background="#FF9800"
+                            Foreground="White"
+                            FontWeight="SemiBold"
+                            Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=inverse}"/>
+                    
+                    <Button Content="🗑️ Delete Item" 
+                            Height="35" 
+                            Margin="0,0,0,8"
+                            Command="{Binding DeleteItemCommand}"
+                            Background="#F44336"
+                            Foreground="White"
+                            FontWeight="SemiBold"
+                            Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=inverse}"/>
+                    
+                    <Button Content="{Binding SelectedItem.IsAvailable, Converter={StaticResource BoolToToggleTextConverter}}"
+                            Height="35" 
+                            Command="{Binding ToggleAvailabilityCommand}"
+                            Background="#2196F3"
+                            Foreground="White"
+                            FontWeight="SemiBold"
+                            Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=inverse}"/>
+                </StackPanel>
+            </GroupBox>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" 
+                Background="#F5F5F5" 
+                BorderBrush="#DDD" 
+                BorderThickness="1" 
+                CornerRadius="3"
+                Padding="10,8"
+                Margin="0,10,0,0">
+            <TextBlock Text="{Binding StatusMessage}" 
+                       Foreground="{Binding StatusColor}"
+                       FontSize="12"/>
+        </Border>
+    </Grid>
+</Window>

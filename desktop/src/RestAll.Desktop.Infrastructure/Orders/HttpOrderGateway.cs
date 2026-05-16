@@ -198,6 +198,21 @@ public sealed class HttpOrderGateway : IOrderGateway
         }
     }
 
+    public async Task<bool> RequestBillAsync(int orderId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInformation("Requesting bill for order {OrderId}", orderId);
+            var response = await _httpClient.PatchAsync($"{_options.BaseUrl}/orders/{orderId}/request-bill", null, cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error requesting bill for order {OrderId}", orderId);
+            return false;
+        }
+    }
+
     private Order? ParseOrder(JsonElement element)
     {
         if (!JsonParserHelper.TryGetIntProperty(element, "id", out var id) ||
@@ -270,6 +285,7 @@ public sealed class HttpOrderGateway : IOrderGateway
             {
                 "pending" => OrderStatus.Pending,
                 "in_progress" => OrderStatus.InProgress,
+                "billing_requested" => OrderStatus.BillingRequested,
                 "paid" => OrderStatus.Paid,
                 _ => OrderStatus.Pending
             };
