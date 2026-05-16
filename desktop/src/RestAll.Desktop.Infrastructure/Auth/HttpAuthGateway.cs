@@ -273,18 +273,21 @@ public sealed class HttpAuthGateway : IAuthGateway
     {
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_options.BaseUrl}/logout");
+            // Backend endpoint is /api/auth/logout (not /api/logout)
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_options.BaseUrl}/auth/logout");
+            
+            _logger.LogInformation("Logging out via {Endpoint}", $"{_options.BaseUrl}/auth/logout");
 
-            if (!string.IsNullOrWhiteSpace(accessToken))
-            {
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-            }
+            // Backend uses cookie-based auth, so we don't need to send bearer token
+            // The session cookie will be sent automatically by HttpClient
 
-            await _httpClient.SendAsync(request, cancellationToken);
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            _logger.LogInformation("Logout response: HTTP {StatusCode}", response.StatusCode);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Logout error: {ex.Message}");
+            _logger.LogError(ex, "Logout error");
+            // Don't fail logout if network error occurs
         }
     }
 

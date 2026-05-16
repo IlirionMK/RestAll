@@ -188,7 +188,7 @@ public class ReservationsViewModel : CancelableViewModelBase
         try
         {
             IsLoading = true;
-            StatusMessage = "";
+            StatusMessage = $"Creating reservation for {CustomerName} on {ReservationDate:yyyy-MM-dd} at {ReservationTime:HH:mm}...";
             
             var reservation = await _reservationsUseCase.CreateReservationAsync(
                 CustomerName,
@@ -204,13 +204,13 @@ public class ReservationsViewModel : CancelableViewModelBase
 
             if (reservation is not null)
             {
-                StatusMessage = $"Reservation {reservation.Id} created successfully.";
+                StatusMessage = $"Reservation {reservation.Id} created successfully for {CustomerName}.";
                 ClearReservationForm();
                 await LoadReservationsAsync();
             }
             else
             {
-                StatusMessage = "Failed to create reservation.";
+                StatusMessage = $"Failed to create reservation for {CustomerName}. Backend returned empty response. Check network connection and table availability.";
             }
         }
         catch (Exception ex)

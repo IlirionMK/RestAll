@@ -12,7 +12,7 @@ public class TablesViewModel : CancelableViewModelBase
     {
         _tablesUseCase = tablesUseCase;
         
-        LoadTablesCommand = new AsyncRelayCommand(LoadTablesAsync, () => !IsLoading);
+        LoadTablesCommand = new AsyncRelayCommand(async () => await LoadTablesAsync(), () => !IsLoading);
         UpdateTableStatusCommand = new AsyncRelayCommand<int, TableStatus>(UpdateTableStatusAsync, (_, _) => !IsLoading);
     }
 
@@ -31,16 +31,22 @@ public class TablesViewModel : CancelableViewModelBase
         UpdateTableStatusCommand.NotifyCanExecuteChanged();
     }
 
-    private async Task LoadTablesAsync()
+    private async Task LoadTablesAsync(CancellationToken cancellationToken = default)
     {
         IsLoading = true;
         StatusMessage = "";
 
         try
         {
-            var tables = await _tablesUseCase.GetTablesAsync(GetCancellationToken().Token);
+            // Use provided token or create a new one if none provided
+            var token = cancellationToken != default ? cancellationToken : GetCancellationToken().Token;
+            var tables = await _tablesUseCase.GetTablesAsync(token);
             Tables = tables;
             StatusMessage = $"Loaded {tables.Count} tables.";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Loading tables was cancelled.";
         }
         catch (Exception ex)
         {
@@ -54,19 +60,29 @@ public class TablesViewModel : CancelableViewModelBase
 
     private async Task UpdateTableStatusAsync(int tableId, TableStatus status)
     {
+        // Use a dedicated CancellationToken for this operation to avoid cancellation from profile refreshes
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        
         try
         {
-            var result = await _tablesUseCase.UpdateTableStatusAsync(tableId, status, GetCancellationToken().Token);
+            var result = await _tablesUseCase.UpdateTableStatusAsync(tableId, status, cts.Token);
             
             if (result)
             {
                 StatusMessage = $"Table {tableId} status updated to {status}.";
-                await LoadTablesAsync();
+                
+                // Use separate token for refresh to avoid cancelling the refresh itself
+                using var refreshCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                await LoadTablesAsync(refreshCts.Token);
             }
             else
             {
                 StatusMessage = $"Failed to update table {tableId}.";
             }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = $"Table status update timed out.";
         }
         catch (Exception ex)
         {

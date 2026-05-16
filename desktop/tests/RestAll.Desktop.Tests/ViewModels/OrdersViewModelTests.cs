@@ -129,4 +129,78 @@ public class OrdersViewModelTests
         // Assert
         // Should not throw exception
     }
+
+    [Fact]
+    public async Task LoadOrdersCommand_WithOfflineOrders_ShouldCountPendingSync()
+    {
+        // Arrange
+        var orders = new List<Order>
+        {
+            new Order(1, 1, 1, 25.98m, OrderStatus.Pending, new List<OrderItem>()), // Online
+            new Order(-123456789, 2, 0, 0m, OrderStatus.Pending, new List<OrderItem>()), // Offline
+            new Order(-987654321, 3, 0, 0m, OrderStatus.Pending, new List<OrderItem>())  // Offline
+        };
+
+        _mockUseCase
+            .Setup(u => u.GetOrdersAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(orders);
+
+        // Act
+        _viewModel.LoadOrdersCommand.Execute(null);
+        await Task.Delay(200);
+
+        // Assert
+        _viewModel.Orders.Should().HaveCount(3);
+        _viewModel.PendingSyncCount.Should().Be(2);
+        _viewModel.StatusMessage.Should().Contain("2 pending sync");
+    }
+
+    [Fact]
+    public async Task LoadOrdersCommand_WithNoOfflineOrders_ShouldShowZeroPending()
+    {
+        // Arrange
+        var orders = new List<Order>
+        {
+            new Order(1, 1, 1, 25.98m, OrderStatus.Pending, new List<OrderItem>()),
+            new Order(2, 2, 1, 15.99m, OrderStatus.InProgress, new List<OrderItem>())
+        };
+
+        _mockUseCase
+            .Setup(u => u.GetOrdersAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(orders);
+
+        // Act
+        _viewModel.LoadOrdersCommand.Execute(null);
+        await Task.Delay(200);
+
+        // Assert
+        _viewModel.PendingSyncCount.Should().Be(0);
+        _viewModel.StatusMessage.Should().NotContain("pending sync");
+    }
+
+    [Fact]
+    public void IsOfflineOrder_WithNegativeId_ShouldReturnTrue()
+    {
+        // Arrange
+        var offlineOrder = new Order(-123456789, 1, 0, 0m, OrderStatus.Pending, new List<OrderItem>());
+
+        // Act
+        var result = OrdersViewModel.IsOfflineOrder(offlineOrder);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsOfflineOrder_WithPositiveId_ShouldReturnFalse()
+    {
+        // Arrange
+        var onlineOrder = new Order(1, 1, 1, 25.98m, OrderStatus.Pending, new List<OrderItem>());
+
+        // Act
+        var result = OrdersViewModel.IsOfflineOrder(onlineOrder);
+
+        // Assert
+        result.Should().BeFalse();
+    }
 }

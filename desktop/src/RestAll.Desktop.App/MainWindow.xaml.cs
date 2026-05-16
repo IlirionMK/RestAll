@@ -73,11 +73,16 @@ public partial class MainWindow : Window
 
     private async void Logout_Click(object sender, RoutedEventArgs e)
     {
-        await _viewModel.LogoutCommand.ExecuteAsync();
-        Close();
-        
+        // First create the login view before closing main window
         var loginView = ((App)Application.Current).CreateLoginView();
+        
+        // Execute logout
+        await _viewModel.LogoutCommand.ExecuteAsync();
+        
+        // Close main window and show login
+        Close();
         loginView.Show();
+        Application.Current.MainWindow = loginView;
     }
 
     private void OnClosed(object? sender, EventArgs e)

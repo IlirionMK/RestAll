@@ -41,15 +41,14 @@ public class HttpReservationGatewayTests
             new
             {
                 id = 1,
-                customer_name = "John Doe",
-                customer_phone = "123456789",
-                customer_email = "john@example.com",
-                reservation_date = dateString,
-                reservation_time = "18:00",
                 table_id = 1,
-                number_of_guests = 4,
+                user_id = 1,
+                restaurant_id = 1,
+                reservation_time = $"{dateString} 18:00:00",
+                guests_count = 4,
                 status = "confirmed",
-                special_requests = "Window seat"
+                table = new { id = 1, number = "T-1", capacity = 4 },
+                user = new { id = 1, name = "John Doe", email = "john@example.com" }
             }
         });
 
@@ -71,7 +70,8 @@ public class HttpReservationGatewayTests
         result.Should().NotBeNull();
         result.Should().HaveCount(1);
         result[0].Id.Should().Be(1);
-        result[0].CustomerName.Should().Be("John Doe");
+        result[0].TableId.Should().Be(1);
+        result[0].NumberOfGuests.Should().Be(4);
     }
 
     [Fact]
@@ -83,26 +83,23 @@ public class HttpReservationGatewayTests
             "John Doe",
             "123456789",
             "john@example.com",
-            DateTime.Now,
-            DateTime.Now.AddHours(18),
+            DateTime.Now.Date,
+            DateTime.Now.Date.AddHours(18),
             1,
             4,
             "confirmed",
-            "Window seat"
+            null
         );
 
         var responseJson = JsonSerializer.Serialize(new
         {
             id = 1,
-            customer_name = "John Doe",
-            customer_phone = "123456789",
-            customer_email = "john@example.com",
-            reservation_date = DateTime.Now.ToString("yyyy-MM-dd"),
-            reservation_time = "18:00",
             table_id = 1,
-            number_of_guests = 4,
-            status = "confirmed",
-            special_requests = "Window seat"
+            user_id = 1,
+            restaurant_id = 1,
+            reservation_time = DateTime.Now.Date.AddHours(18).ToString("yyyy-MM-dd HH:mm:ss"),
+            guests_count = 4,
+            status = "confirmed"
         });
 
         _httpMessageHandlerMock.Protected()
@@ -121,8 +118,9 @@ public class HttpReservationGatewayTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().NotBeNull();
         result!.Id.Should().Be(1);
+        result.TableId.Should().Be(1);
+        result.NumberOfGuests.Should().Be(4);
     }
 
     [Fact]

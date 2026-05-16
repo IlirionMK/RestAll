@@ -1,6 +1,7 @@
 using System.Windows.Media;
 using RestAll.Desktop.Core.Orders;
 using RestAll.Desktop.Core.Realtime;
+using RestAll.Desktop.Core.Offline;
 
 namespace RestAll.Desktop.App.ViewModels;
 
@@ -8,6 +9,7 @@ public class OrdersViewModel : CancelableViewModelBase
 {
     private readonly IManageOrdersUseCase _ordersUseCase;
     private readonly IRealtimeService _realtimeService;
+    private readonly IOfflineStorage? _offlineStorage;
     
     private List<Order> _orders = new();
     private string _newOrderTableId = "";
@@ -20,22 +22,28 @@ public class OrdersViewModel : CancelableViewModelBase
     private int? _billRequestedOrderId;
     private Brush _billStatusColor = Brushes.Black;
     private string _requestBillOrderId = "";
+    private int _pendingSyncCount = 0;
 
-    public OrdersViewModel(IManageOrdersUseCase ordersUseCase, IRealtimeService realtimeService)
+    public OrdersViewModel(IManageOrdersUseCase ordersUseCase, IRealtimeService realtimeService, IOfflineStorage? offlineStorage = null)
     {
         _ordersUseCase = ordersUseCase;
         _realtimeService = realtimeService;
+        _offlineStorage = offlineStorage;
         _realtimeService.OrderBillingRequested += OnRealtimeRefreshRequested;
         _realtimeService.KitchenOrderItemsAdded += OnRealtimeRefreshRequested;
         _realtimeService.KitchenTicketStatusUpdated += OnRealtimeRefreshRequested;
         _realtimeService.ItemReady += OnRealtimeRefreshRequested;
         
-        LoadOrdersCommand = new AsyncRelayCommand(LoadOrdersAsync, () => !IsLoading);
+        LoadOrdersCommand = new AsyncRelayCommand(async () => await LoadOrdersAsync(), () => !IsLoading);
         PayOrderCommand = new AsyncRelayCommand<int>(PayOrderAsync, _ => !IsLoading);
         CreateOrderCommand = new AsyncRelayCommand(CreateOrderAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(NewOrderTableId));
         AddItemCommand = new AsyncRelayCommand(AddItemAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(AddItemOrderId) && !string.IsNullOrWhiteSpace(AddItemMenuItemId));
         RemoveItemCommand = new AsyncRelayCommand(RemoveItemAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(RemoveItemOrderId) && !string.IsNullOrWhiteSpace(RemoveItemOrderItemId));
         RequestBillCommand = new AsyncRelayCommand<int>(RequestBillAsync, _ => !IsLoading);
+        SyncNowCommand = new AsyncRelayCommand(SyncNowAsync, () => !IsLoading);
+        
+        // Start timer to refresh pending count every 10 seconds
+        StartPendingCountTimer();
     }
 
     public List<Order> Orders
@@ -104,12 +112,19 @@ public class OrdersViewModel : CancelableViewModelBase
         set => SetProperty(ref _requestBillOrderId, value);
     }
 
+    public int PendingSyncCount
+    {
+        get => _pendingSyncCount;
+        set => SetProperty(ref _pendingSyncCount, value);
+    }
+
     public IAsyncRelayCommand LoadOrdersCommand { get; }
     public IAsyncRelayCommand<int> PayOrderCommand { get; }
     public IAsyncRelayCommand CreateOrderCommand { get; }
     public IAsyncRelayCommand AddItemCommand { get; }
     public IAsyncRelayCommand RemoveItemCommand { get; }
     public IAsyncRelayCommand<int> RequestBillCommand { get; }
+    public IAsyncRelayCommand SyncNowCommand { get; }
 
     protected override void OnIsLoadingChanged()
     {
@@ -119,6 +134,7 @@ public class OrdersViewModel : CancelableViewModelBase
         AddItemCommand.NotifyCanExecuteChanged();
         RemoveItemCommand.NotifyCanExecuteChanged();
         RequestBillCommand.NotifyCanExecuteChanged();
+        SyncNowCommand.NotifyCanExecuteChanged();
     }
 
     protected override void OnPropertyChanged(string? propertyName)
@@ -129,16 +145,39 @@ public class OrdersViewModel : CancelableViewModelBase
         RemoveItemCommand.NotifyCanExecuteChanged();
     }
 
-    private async Task LoadOrdersAsync()
+    // Helper method for UI binding - check if order is offline (negative ID)
+    public static bool IsOfflineOrder(Order order)
+    {
+        return order.Id < 0;
+    }
+
+    private async Task LoadOrdersAsync(CancellationToken cancellationToken = default)
     {
         IsLoading = true;
         StatusMessage = "";
 
         try
         {
-            var orders = await _ordersUseCase.GetOrdersAsync(GetCancellationToken().Token);
+            // Use provided token or create a new one if none provided
+            var token = cancellationToken != default ? cancellationToken : GetCancellationToken().Token;
+            var orders = await _ordersUseCase.GetOrdersAsync(token);
             Orders = orders;
-            StatusMessage = $"Loaded {orders.Count} orders.";
+            
+            // Count pending sync operations (negative IDs = offline orders)
+            PendingSyncCount = orders.Count(o => o.Id < 0);
+            
+            if (PendingSyncCount > 0)
+            {
+                StatusMessage = $"Loaded {orders.Count} orders ({PendingSyncCount} pending sync).";
+            }
+            else
+            {
+                StatusMessage = $"Loaded {orders.Count} orders.";
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Loading orders was cancelled.";
         }
         catch (Exception ex)
         {
@@ -162,19 +201,29 @@ public class OrdersViewModel : CancelableViewModelBase
 
     private async Task PayOrderAsync(int orderId)
     {
+        // Use dedicated CancellationToken to avoid cancellation from profile refreshes
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        
         try
         {
-            var result = await _ordersUseCase.PayOrderAsync(orderId, GetCancellationToken().Token);
+            var result = await _ordersUseCase.PayOrderAsync(orderId, cts.Token);
             
             if (result)
             {
                 StatusMessage = $"Order {orderId} paid successfully.";
-                await LoadOrdersAsync();
+                
+                // Use separate token for refresh
+                using var refreshCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                await LoadOrdersAsync(refreshCts.Token);
             }
             else
             {
                 StatusMessage = $"Failed to pay order {orderId}.";
             }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Payment operation timed out.";
         }
         catch (Exception ex)
         {
@@ -186,28 +235,47 @@ public class OrdersViewModel : CancelableViewModelBase
     {
         if (!int.TryParse(NewOrderTableId, out var tableId))
         {
-            StatusMessage = "Invalid table ID.";
+            StatusMessage = "Invalid table ID. Please enter a valid number.";
             return;
         }
 
+        // Use dedicated CancellationToken to avoid cancellation from profile refreshes
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        
+        IsLoading = true;
+        StatusMessage = $"Creating order for table {tableId}...";
+
         try
         {
-            var order = await _ordersUseCase.CreateOrderAsync(tableId, GetCancellationToken().Token);
+            var order = await _ordersUseCase.CreateOrderAsync(tableId, cts.Token);
             
             if (order is not null)
             {
-                StatusMessage = $"Order {order.Id} created successfully.";
+                StatusMessage = order.Id < 0 
+                    ? $"Order created (offline mode - ID: {order.Id}). Will sync when online." 
+                    : $"Order {order.Id} created successfully.";
                 NewOrderTableId = "";
-                await LoadOrdersAsync();
+                
+                // Use separate token for refresh
+                using var refreshCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                await LoadOrdersAsync(refreshCts.Token);
             }
             else
             {
-                StatusMessage = "Failed to create order.";
+                StatusMessage = $"Failed to create order for table {tableId}. Backend returned empty response. Check network connection and try again.";
             }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Order creation timed out.";
         }
         catch (Exception ex)
         {
             StatusMessage = $"Error creating order: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 
@@ -221,6 +289,9 @@ public class OrdersViewModel : CancelableViewModelBase
             return;
         }
 
+        // Use dedicated CancellationToken to avoid cancellation from profile refreshes
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        
         try
         {
             var items = new List<OrderItem>
@@ -228,7 +299,7 @@ public class OrdersViewModel : CancelableViewModelBase
                 new OrderItem(0, orderId, menuItemId, "", 0, quantity, AddItemComment, OrderItemStatus.Pending)
             };
 
-            var order = await _ordersUseCase.AddOrderItemsAsync(orderId, items, GetCancellationToken().Token);
+            var order = await _ordersUseCase.AddOrderItemsAsync(orderId, items, cts.Token);
             
             if (order is not null)
             {
@@ -237,12 +308,19 @@ public class OrdersViewModel : CancelableViewModelBase
                 AddItemMenuItemId = "";
                 AddItemQuantity = "1";
                 AddItemComment = "";
-                await LoadOrdersAsync();
+                
+                // Use separate token for refresh
+                using var refreshCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                await LoadOrdersAsync(refreshCts.Token);
             }
             else
             {
                 StatusMessage = "Failed to add item to order.";
             }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Add item operation timed out.";
         }
         catch (Exception ex)
         {
@@ -259,21 +337,31 @@ public class OrdersViewModel : CancelableViewModelBase
             return;
         }
 
+        // Use dedicated CancellationToken to avoid cancellation from profile refreshes
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        
         try
         {
-            var result = await _ordersUseCase.RemoveOrderItemAsync(orderId, orderItemId, GetCancellationToken().Token);
+            var result = await _ordersUseCase.RemoveOrderItemAsync(orderId, orderItemId, cts.Token);
             
             if (result)
             {
                 StatusMessage = $"Item removed from order {orderId} successfully.";
                 RemoveItemOrderId = "";
                 RemoveItemOrderItemId = "";
-                await LoadOrdersAsync();
+                
+                // Use separate token for refresh
+                using var refreshCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                await LoadOrdersAsync(refreshCts.Token);
             }
             else
             {
                 StatusMessage = "Failed to remove item from order.";
             }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Remove item operation timed out.";
         }
         catch (Exception ex)
         {
@@ -283,16 +371,22 @@ public class OrdersViewModel : CancelableViewModelBase
 
     private async Task RequestBillAsync(int orderId)
     {
+        // Use dedicated CancellationToken to avoid cancellation from profile refreshes
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        
         try
         {
-            var result = await _ordersUseCase.RequestBillAsync(orderId, GetCancellationToken().Token);
+            var result = await _ordersUseCase.RequestBillAsync(orderId, cts.Token);
             
             if (result)
             {
                 BillRequestedOrderId = orderId;
                 BillStatusColor = Brushes.Orange;
                 StatusMessage = $"Bill requested for order {orderId}. Waiting for waiter...";
-                await LoadOrdersAsync();
+                
+                // Use separate token for refresh
+                using var refreshCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                await LoadOrdersAsync(refreshCts.Token);
             }
             else
             {
@@ -300,10 +394,76 @@ public class OrdersViewModel : CancelableViewModelBase
                 BillStatusColor = Brushes.Red;
             }
         }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Bill request timed out.";
+            BillStatusColor = Brushes.Red;
+        }
         catch (Exception ex)
         {
             StatusMessage = $"Error requesting bill: {ex.Message}";
             BillStatusColor = Brushes.Red;
+        }
+    }
+
+    private async Task SyncNowAsync()
+    {
+        if (_offlineStorage is null)
+        {
+            StatusMessage = "Sync not available - offline storage not configured.";
+            return;
+        }
+
+        IsLoading = true;
+        StatusMessage = "Synchronizing pending orders...";
+
+        try
+        {
+            // The SyncManager runs in background, so we just need to wait a bit and refresh
+            await Task.Delay(2000); // Give SyncManager time to process
+            await RefreshPendingCountAsync();
+            await LoadOrdersAsync();
+            
+            if (PendingSyncCount == 0)
+            {
+                StatusMessage = "All orders synchronized successfully!";
+            }
+            else
+            {
+                StatusMessage = $"{PendingSyncCount} orders still pending synchronization.";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error during sync: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void StartPendingCountTimer()
+    {
+        // Timer to refresh pending count every 10 seconds
+        var timer = new System.Timers.Timer(10000);
+        timer.Elapsed += async (sender, e) =>
+        {
+            try
+            {
+                await RefreshPendingCountAsync();
+            }
+            catch { }
+        };
+        timer.Start();
+    }
+
+    private async Task RefreshPendingCountAsync()
+    {
+        if (_offlineStorage is not null)
+        {
+            var count = await _offlineStorage.GetPendingOperationsCountAsync();
+            PendingSyncCount = count;
         }
     }
 

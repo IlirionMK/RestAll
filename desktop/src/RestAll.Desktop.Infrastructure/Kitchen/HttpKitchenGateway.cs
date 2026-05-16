@@ -69,7 +69,7 @@ public sealed class HttpKitchenGateway : IKitchenGateway
         {
             var requestBody = new
             {
-                status = (int)status
+                status = status.ToString().ToLowerInvariant()
             };
 
             var content = new StringContent(
@@ -78,9 +78,19 @@ public sealed class HttpKitchenGateway : IKitchenGateway
                 "application/json"
             );
 
+            _logger.LogInformation("Updating kitchen ticket {OrderItemId} status to {Status}", orderItemId, requestBody.status);
             var response = await _httpClient.PatchAsync($"{_options.BaseUrl}/kitchen/tickets/{orderItemId}/status", content, cancellationToken);
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            return response.IsSuccessStatusCode;
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to update ticket status (HTTP {StatusCode}): {Response}", 
+                    response.StatusCode, responseContent);
+                return false;
+            }
+
+            _logger.LogInformation("Kitchen ticket {OrderItemId} status updated successfully", orderItemId);
+            return true;
         }
         catch (Exception ex)
         {

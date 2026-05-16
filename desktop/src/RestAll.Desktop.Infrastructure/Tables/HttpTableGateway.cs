@@ -69,7 +69,11 @@ public sealed class HttpTableGateway : ITableGateway
         {
             var requestBody = new
             {
-                status = (int)status
+                status = status switch
+                {
+                    TableStatus.Available => "free",
+                    _ => status.ToString().ToLowerInvariant()
+                }
             };
 
             var content = new StringContent(
@@ -78,9 +82,19 @@ public sealed class HttpTableGateway : ITableGateway
                 "application/json"
             );
 
+            _logger.LogInformation("Updating table {TableId} status to {Status}", id, requestBody.status);
             var response = await _httpClient.PatchAsync($"{_options.BaseUrl}/tables/{id}/status", content, cancellationToken);
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            return response.IsSuccessStatusCode;
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to update table status (HTTP {StatusCode}): {Response}", 
+                    response.StatusCode, responseContent);
+                return false;
+            }
+
+            _logger.LogInformation("Table {TableId} status updated successfully", id);
+            return true;
         }
         catch (Exception ex)
         {

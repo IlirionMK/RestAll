@@ -115,7 +115,7 @@ public class HttpKitchenGatewayTests
         handler.LastRequest!.Method.Should().Be(HttpMethod.Patch);
         handler.LastRequest.RequestUri!.ToString().Should().EndWith("/kitchen/tickets/1/status");
         var body = await handler.LastRequest.Content!.ReadAsStringAsync();
-        body.Should().Contain("\"status\":1");
+        body.Should().Contain("\"status\":\"preparing\"");
     }
 
     [Fact]

@@ -15,6 +15,9 @@ public class SqliteOfflineStorage : IOfflineStorage
     private const string MenuCategoriesTable = "menu_categories";
     private const string MenuItemsTable = "menu_items";
     private const string SyncMetadataTable = "sync_metadata";
+    private const string PendingOrdersTable = "pending_orders";
+    private const string PendingOrderItemsTable = "pending_order_items";
+    private const string PendingPaymentsTable = "pending_payments";
 
     public SqliteOfflineStorage(ILogger<SqliteOfflineStorage> logger)
     {
@@ -95,6 +98,59 @@ public class SqliteOfflineStorage : IOfflineStorage
         var command4 = connection.CreateCommand();
         command4.CommandText = createOperationsTable;
         command4.ExecuteNonQuery();
+        
+        // Create pending orders table for offline drafts
+        var createPendingOrdersTable = @"
+            CREATE TABLE IF NOT EXISTS pending_orders (
+                local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                server_id INTEGER NULL,
+                table_id INTEGER NOT NULL,
+                reservation_id INTEGER NULL,
+                status TEXT NOT NULL CHECK(status IN ('pending', 'syncing', 'synced', 'conflict', 'failed')),
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                synced_at DATETIME NULL,
+                error_message TEXT NULL
+            )";
+        
+        var command6 = connection.CreateCommand();
+        command6.CommandText = createPendingOrdersTable;
+        command6.ExecuteNonQuery();
+        
+        // Create pending order items table
+        var createPendingOrderItemsTable = @"
+            CREATE TABLE IF NOT EXISTS pending_order_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                pending_order_local_id INTEGER NOT NULL,
+                menu_item_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                price REAL NOT NULL,
+                quantity INTEGER NOT NULL DEFAULT 1,
+                comment TEXT NULL,
+                operation TEXT NOT NULL CHECK(operation IN ('add', 'remove')),
+                synced INTEGER DEFAULT 0,
+                FOREIGN KEY (pending_order_local_id) REFERENCES pending_orders(local_id) ON DELETE CASCADE
+            )";
+        
+        var command7 = connection.CreateCommand();
+        command7.CommandText = createPendingOrderItemsTable;
+        command7.ExecuteNonQuery();
+        
+        // Create pending payments table
+        var createPendingPaymentsTable = @"
+            CREATE TABLE IF NOT EXISTS pending_payments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_server_id INTEGER NOT NULL,
+                amount REAL NOT NULL,
+                payment_method TEXT NULL,
+                status TEXT NOT NULL CHECK(status IN ('pending', 'syncing', 'synced', 'failed')),
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                synced_at DATETIME NULL,
+                error_message TEXT NULL
+            )";
+        
+        var command8 = connection.CreateCommand();
+        command8.CommandText = createPendingPaymentsTable;
+        command8.ExecuteNonQuery();
         
         _logger.LogInformation("SQLite database initialized at {Path}", _databasePath);
     }
@@ -492,6 +548,423 @@ public class SqliteOfflineStorage : IOfflineStorage
         {
             _logger.LogError(ex, "Error getting sync time for {Key}", entityKey);
             return null;
+        }
+    }
+
+    // Pending orders methods
+    public async Task<int> CreatePendingOrderAsync(int tableId, int? reservationId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                INSERT INTO pending_orders (table_id, reservation_id, status)
+                VALUES (@table_id, @reservation_id, 'pending')
+                RETURNING local_id";
+
+            command.Parameters.AddWithValue("@table_id", tableId);
+            command.Parameters.AddWithValue("@reservation_id", reservationId.HasValue ? (object)reservationId.Value : DBNull.Value);
+
+            var result = await command.ExecuteScalarAsync(cancellationToken);
+            var localId = Convert.ToInt32(result);
+
+            _logger.LogInformation("Created pending order with local ID {LocalId} for table {TableId}", localId, tableId);
+            return localId;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating pending order for table {TableId}", tableId);
+            throw;
+        }
+    }
+
+    public async Task<List<PendingOrder>> GetPendingOrdersAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT local_id, server_id, table_id, reservation_id, status, created_at FROM pending_orders WHERE status IN ('pending', 'syncing', 'failed') ORDER BY created_at ASC";
+
+            using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            var orders = new List<PendingOrder>();
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var order = new PendingOrder(
+                    reader.GetInt32(0),
+                    reader.IsDBNull(1) ? (int?)null : reader.GetInt32(1),
+                    reader.GetInt32(2),
+                    reader.IsDBNull(3) ? (int?)null : reader.GetInt32(3),
+                    reader.GetString(4),
+                    DateTime.Parse(reader.GetString(5))
+                );
+
+                orders.Add(order);
+            }
+
+            _logger.LogDebug("Retrieved {Count} pending orders", orders.Count);
+            return orders;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting pending orders");
+            return new List<PendingOrder>();
+        }
+    }
+
+    public async Task<PendingOrder?> GetPendingOrderAsync(int localId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT local_id, server_id, table_id, reservation_id, status, created_at FROM pending_orders WHERE local_id = @local_id";
+            command.Parameters.AddWithValue("@local_id", localId);
+
+            using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            if (await reader.ReadAsync(cancellationToken))
+            {
+                return new PendingOrder(
+                    reader.GetInt32(0),
+                    reader.IsDBNull(1) ? (int?)null : reader.GetInt32(1),
+                    reader.GetInt32(2),
+                    reader.IsDBNull(3) ? (int?)null : reader.GetInt32(3),
+                    reader.GetString(4),
+                    DateTime.Parse(reader.GetString(5))
+                );
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting pending order {LocalId}", localId);
+            return null;
+        }
+    }
+
+    public async Task MarkOrderSyncedAsync(int localId, int serverId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                UPDATE pending_orders 
+                SET server_id = @server_id, status = 'synced', synced_at = @synced_at
+                WHERE local_id = @local_id";
+
+            command.Parameters.AddWithValue("@local_id", localId);
+            command.Parameters.AddWithValue("@server_id", serverId);
+            command.Parameters.AddWithValue("@synced_at", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogInformation("Marked order {LocalId} as synced with server ID {ServerId}", localId, serverId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error marking order {LocalId} as synced", localId);
+        }
+    }
+
+    public async Task MarkOrderFailedAsync(int localId, string errorMessage, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                UPDATE pending_orders 
+                SET status = 'failed', error_message = @error_message
+                WHERE local_id = @local_id";
+
+            command.Parameters.AddWithValue("@local_id", localId);
+            command.Parameters.AddWithValue("@error_message", errorMessage);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogWarning("Marked order {LocalId} as failed: {ErrorMessage}", localId, errorMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error marking order {LocalId} as failed", localId);
+        }
+    }
+
+    public async Task MarkOrderSyncingAsync(int localId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "UPDATE pending_orders SET status = 'syncing' WHERE local_id = @local_id";
+            command.Parameters.AddWithValue("@local_id", localId);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogDebug("Marked order {LocalId} as syncing", localId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error marking order {LocalId} as syncing", localId);
+        }
+    }
+
+    // Pending order items methods
+    public async Task AddPendingOrderItemAsync(int localOrderId, PendingOrderItem item, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                INSERT INTO pending_order_items (pending_order_local_id, menu_item_id, name, price, quantity, comment, operation)
+                VALUES (@local_order_id, @menu_item_id, @name, @price, @quantity, @comment, @operation)";
+
+            command.Parameters.AddWithValue("@local_order_id", localOrderId);
+            command.Parameters.AddWithValue("@menu_item_id", item.MenuItemId);
+            command.Parameters.AddWithValue("@name", item.Name);
+            command.Parameters.AddWithValue("@price", item.Price);
+            command.Parameters.AddWithValue("@quantity", item.Quantity);
+            command.Parameters.AddWithValue("@comment", item.Comment ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@operation", item.Operation);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogDebug("Added pending item {MenuItemId} to order {LocalOrderId}", item.MenuItemId, localOrderId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding pending item to order {LocalOrderId}", localOrderId);
+        }
+    }
+
+    public async Task<List<PendingOrderItem>> GetPendingOrderItemsAsync(int localOrderId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT menu_item_id, name, price, quantity, comment, operation FROM pending_order_items WHERE pending_order_local_id = @local_order_id AND synced = 0";
+            command.Parameters.AddWithValue("@local_order_id", localOrderId);
+
+            using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            var items = new List<PendingOrderItem>();
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var item = new PendingOrderItem(
+                    reader.GetInt32(0),
+                    reader.GetString(1),
+                    reader.GetDecimal(2),
+                    reader.GetInt32(3),
+                    reader.IsDBNull(4) ? null : reader.GetString(4),
+                    reader.GetString(5)
+                );
+
+                items.Add(item);
+            }
+
+            return items;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting pending items for order {LocalOrderId}", localOrderId);
+            return new List<PendingOrderItem>();
+        }
+    }
+
+    public async Task MarkPendingOrderItemSyncedAsync(int itemId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "UPDATE pending_order_items SET synced = 1 WHERE id = @id";
+            command.Parameters.AddWithValue("@id", itemId);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogDebug("Marked pending item {ItemId} as synced", itemId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error marking pending item {ItemId} as synced", itemId);
+        }
+    }
+
+    public async Task RemovePendingOrderItemAsync(int localOrderId, int menuItemId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                INSERT INTO pending_order_items (pending_order_local_id, menu_item_id, name, price, quantity, operation)
+                VALUES (@local_order_id, @menu_item_id, '', 0, 1, 'remove')";
+
+            command.Parameters.AddWithValue("@local_order_id", localOrderId);
+            command.Parameters.AddWithValue("@menu_item_id", menuItemId);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogDebug("Queued removal of item {MenuItemId} from order {LocalOrderId}", menuItemId, localOrderId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error queuing item removal for order {LocalOrderId}", localOrderId);
+        }
+    }
+
+    // Pending payments methods
+    public async Task AddPendingPaymentAsync(int orderServerId, decimal amount, string? paymentMethod, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                INSERT INTO pending_payments (order_server_id, amount, payment_method, status)
+                VALUES (@order_server_id, @amount, @payment_method, 'pending')";
+
+            command.Parameters.AddWithValue("@order_server_id", orderServerId);
+            command.Parameters.AddWithValue("@amount", amount);
+            command.Parameters.AddWithValue("@payment_method", paymentMethod ?? (object)DBNull.Value);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogInformation("Added pending payment for order {OrderId}, amount {Amount}", orderServerId, amount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding pending payment for order {OrderId}", orderServerId);
+        }
+    }
+
+    public async Task<List<PendingPayment>> GetPendingPaymentsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT id, order_server_id, amount, payment_method, status FROM pending_payments WHERE status IN ('pending', 'failed') ORDER BY created_at ASC";
+
+            using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            var payments = new List<PendingPayment>();
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var payment = new PendingPayment(
+                    reader.GetInt32(0),
+                    reader.GetInt32(1),
+                    reader.GetDecimal(2),
+                    reader.IsDBNull(3) ? null : reader.GetString(3),
+                    reader.GetString(4)
+                );
+
+                payments.Add(payment);
+            }
+
+            return payments;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting pending payments");
+            return new List<PendingPayment>();
+        }
+    }
+
+    public async Task MarkPaymentSyncedAsync(int paymentId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                UPDATE pending_payments 
+                SET status = 'synced', synced_at = @synced_at
+                WHERE id = @id";
+
+            command.Parameters.AddWithValue("@id", paymentId);
+            command.Parameters.AddWithValue("@synced_at", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogDebug("Marked payment {PaymentId} as synced", paymentId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error marking payment {PaymentId} as synced", paymentId);
+        }
+    }
+
+    public async Task MarkPaymentFailedAsync(int paymentId, string errorMessage, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                UPDATE pending_payments 
+                SET status = 'failed', error_message = @error_message
+                WHERE id = @id";
+
+            command.Parameters.AddWithValue("@id", paymentId);
+            command.Parameters.AddWithValue("@error_message", errorMessage);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogWarning("Marked payment {PaymentId} as failed: {ErrorMessage}", paymentId, errorMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error marking payment {PaymentId} as failed", paymentId);
+        }
+    }
+
+    // Count pending operations
+    public async Task<int> GetPendingOperationsCountAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_databasePath}");
+            await connection.OpenAsync(cancellationToken);
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                SELECT 
+                    (SELECT COUNT(*) FROM pending_orders WHERE status IN ('pending', 'syncing')) +
+                    (SELECT COUNT(*) FROM pending_payments WHERE status IN ('pending', 'syncing'))";
+
+            var count = Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken));
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error counting pending operations");
+            return 0;
         }
     }
 }

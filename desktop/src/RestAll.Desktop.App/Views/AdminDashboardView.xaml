@@ -18,31 +18,47 @@
                         <GroupBox Header="Create staff member" Margin="0,0,0,15">
                             <Grid Margin="10">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="2*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBox Grid.Column="0" Grid.Row="0" Margin="0,0,10,10" Height="30" 
-                                         Text="{Binding NewStaffName, UpdateSourceTrigger=PropertyChanged}"
-                                         ToolTip="Name"/>
+                                <!-- Row 0: Name -->
+                                <TextBlock Grid.Column="0" Grid.Row="0" Text="Name:" VerticalAlignment="Center" Margin="0,0,5,10" Width="60"/>
                                 <TextBox Grid.Column="1" Grid.Row="0" Margin="0,0,10,10" Height="30" 
-                                         Text="{Binding NewStaffEmail, UpdateSourceTrigger=PropertyChanged}"
-                                         ToolTip="Email"/>
-                                <PasswordBox Grid.Column="2" Grid.Row="0" Margin="0,0,10,10" Height="30"
-                                             PasswordChanged="NewStaffPassword_PasswordChanged"
-                                             ToolTip="Password"/>
+                                         Text="{Binding NewStaffName, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Staff member name"/>
 
-                                <ComboBox Grid.Column="0" Grid.Row="1" Margin="0,0,10,0" Height="30"
+                                <!-- Row 0: Email -->
+                                <TextBlock Grid.Column="2" Grid.Row="0" Text="Email:" VerticalAlignment="Center" Margin="0,0,5,10" Width="60"/>
+                                <TextBox Grid.Column="3" Grid.Row="0" Margin="0,0,10,10" Height="30" 
+                                         Text="{Binding NewStaffEmail, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Staff member email"/>
+
+                                <!-- Row 0: Password -->
+                                <TextBlock Grid.Column="4" Grid.Row="0" Text="Password:" VerticalAlignment="Center" Margin="0,0,5,10" Width="60"/>
+                                <PasswordBox Grid.Column="5" Grid.Row="0" Margin="0,0,10,10" Height="30"
+                                             PasswordChanged="NewStaffPassword_PasswordChanged"
+                                             ToolTip="Initial password"/>
+
+                                <!-- Row 1: Role -->
+                                <TextBlock Grid.Column="0" Grid.Row="1" Text="Role:" VerticalAlignment="Center" Margin="0,0,5,0" Width="60"/>
+                                <ComboBox Grid.Column="1" Grid.Row="1" Margin="0,0,10,0" Height="30"
                                           ItemsSource="{Binding AvailableRoles}"
                                           SelectedItem="{Binding NewStaffRole, Mode=TwoWay}"
-                                          ToolTip="Role"/>
-                                <Button Grid.Column="1" Grid.Row="1" Content="Create" Width="120" Height="30"
+                                          ToolTip="Staff role"/>
+
+                                <!-- Row 1: Create button -->
+                                <Button Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2" Content="Create" Width="120" Height="30"
                                         Command="{Binding CreateStaffCommand}"/>
                             </Grid>
                         </GroupBox>

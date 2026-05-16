@@ -1,4 +1,5 @@
 using System.Windows;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -6,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Serilog;
+using Serilog.Events;
 using RestAll.Desktop.Core.Auth;
 using RestAll.Desktop.Core.Admin;
 using RestAll.Desktop.Core.Menu;
@@ -46,6 +49,22 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Configure Serilog to write to file
+        var logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+        Directory.CreateDirectory(logDirectory);
+        
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .MinimumLevel.Override("System.Net.Http", LogEventLevel.Information)
+            .WriteTo.File(
+                Path.Combine(logDirectory, "restall-.log"),
+                rollingInterval: RollingInterval.Day,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.Console(
+                outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateLogger();
+
         var services = new ServiceCollection();
         
         // Load configuration
@@ -56,11 +75,10 @@ public partial class App : Application
         
         services.AddSingleton<IConfiguration>(configuration);
         
-        // Add logging
+        // Add logging with Serilog
         services.AddLogging(builder => 
         {
-            builder.AddConfiguration(configuration.GetSection("Logging"));
-            builder.AddConsole();
+            builder.AddSerilog(dispose: false);
         });
         
         // Register Core services
@@ -115,46 +133,84 @@ public partial class App : Application
         // Register Session storage
         services.AddSingleton<ISessionStorage, SqliteSessionStorage>();
 
-        // Configure HTTP clients with one shared cookie container and handler
-        services.AddSingleton(new CookieContainer());
-        services.AddSingleton<HttpClientHandler>(sp => CreateHttpClientHandler(sp.GetRequiredService<CookieContainer>()));
+        // Configure HTTP clients with one shared cookie container
+        // IMPORTANT: Do NOT register HttpClientHandler as singleton - IHttpClientFactory manages handler lifecycle
+        // Each HttpClient gets its own handler instance, but they all share the same CookieContainer
+        var sharedCookieContainer = new CookieContainer();
+        services.AddSingleton(sharedCookieContainer);
         services.AddTransient<ICsrfTokenService, CookieCsrfTokenService>();
         services.AddTransient<CsrfHeaderHandler>();
 
         services.AddHttpClient("csrf-cookie", client => ConfigureApiClient(client, apiOptions))
-            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+            .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = sp.GetRequiredService<CookieContainer>()
+            });
 
         services.AddHttpClient<IAuthGateway, HttpAuthGateway>(client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
-            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+            .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = sp.GetRequiredService<CookieContainer>()
+            });
         
         services.AddHttpClient<IMenuGateway, HttpMenuGateway>(client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
-            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+            .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = sp.GetRequiredService<CookieContainer>()
+            });
         
         services.AddHttpClient<ITableGateway, HttpTableGateway>(client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
-            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+            .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = sp.GetRequiredService<CookieContainer>()
+            });
         
         services.AddHttpClient<IOrderGateway, HttpOrderGateway>(client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
-            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+            .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = sp.GetRequiredService<CookieContainer>()
+            });
         
         services.AddHttpClient<IKitchenGateway, HttpKitchenGateway>(client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
-            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+            .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = sp.GetRequiredService<CookieContainer>()
+            });
 
         services.AddHttpClient<IAdminGateway, HttpAdminGateway>(client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
-            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+            .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = sp.GetRequiredService<CookieContainer>()
+            });
         
         services.AddHttpClient<IReservationGateway, HttpReservationGateway>(client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
-            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+            .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = sp.GetRequiredService<CookieContainer>()
+            });
         
         services.AddHttpClient<IProfileGateway, HttpProfileGateway>(client => ConfigureApiClient(client, apiOptions))
             .AddHttpMessageHandler<CsrfHeaderHandler>()
-            .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<HttpClientHandler>());
+            .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = sp.GetRequiredService<CookieContainer>()
+            });
         
         // Register ViewModels
         services.AddTransient<LoginViewModel>();
@@ -285,5 +341,11 @@ public partial class App : Application
             UseCookies = true,
             CookieContainer = cookieContainer
         };
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        Log.CloseAndFlush();
+        base.OnExit(e);
     }
 }

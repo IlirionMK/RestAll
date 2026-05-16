@@ -19,7 +19,7 @@ public class MenuManagementViewModel : CancelableViewModelBase
     private decimal _itemPrice;
     private string? _itemPhotoUrl;
     private int _selectedCategoryId;
-    private ObservableCollection<int> _categoryIds = new();
+    private ObservableCollection<MenuCategory> _categoryIds = new();
     private Brush _statusColor = Brushes.Black;
 
     public MenuManagementViewModel(IManageMenuUseCase manageMenuUseCase, IAuthenticateUserUseCase authUseCase)
@@ -34,6 +34,9 @@ public class MenuManagementViewModel : CancelableViewModelBase
         CancelEditCommand = new RelayCommand(CancelEdit);
         DeleteItemCommand = new AsyncRelayCommand(DeleteItemAsync, () => SelectedItem != null);
         ToggleAvailabilityCommand = new AsyncRelayCommand(ToggleAvailabilityAsync, () => SelectedItem != null);
+        SelectItemCommand = new RelayCommand<MenuItem>(SelectItem);
+        DeleteItemDirectCommand = new AsyncRelayCommand<MenuItem>(DeleteItemDirectAsync);
+        ToggleItemAvailabilityCommand = new AsyncRelayCommand<MenuItem>(ToggleItemAvailabilityDirectAsync);
     }
 
     public ObservableCollection<MenuCategory> Categories
@@ -109,7 +112,7 @@ public class MenuManagementViewModel : CancelableViewModelBase
         set => SetProperty(ref _selectedCategoryId, value);
     }
 
-    public ObservableCollection<int> CategoryIds
+    public ObservableCollection<MenuCategory> CategoryIds
     {
         get => _categoryIds;
         set => SetProperty(ref _categoryIds, value);
@@ -128,6 +131,9 @@ public class MenuManagementViewModel : CancelableViewModelBase
     public ICommand CancelEditCommand { get; }
     public IAsyncRelayCommand DeleteItemCommand { get; }
     public IAsyncRelayCommand ToggleAvailabilityCommand { get; }
+    public ICommand SelectItemCommand { get; }
+    public IAsyncRelayCommand<MenuItem> DeleteItemDirectCommand { get; }
+    public IAsyncRelayCommand<MenuItem> ToggleItemAvailabilityCommand { get; }
 
     public async Task InitializeAsync()
     {
@@ -157,7 +163,7 @@ public class MenuManagementViewModel : CancelableViewModelBase
             foreach (var category in categories)
             {
                 Categories.Add(category);
-                CategoryIds.Add(category.Id);
+                CategoryIds.Add(category);
             }
 
             if (Categories.Any())
@@ -191,7 +197,7 @@ public class MenuManagementViewModel : CancelableViewModelBase
         ItemDescription = string.Empty;
         ItemPrice = 0;
         ItemPhotoUrl = string.Empty;
-        SelectedCategoryId = CategoryIds.Any() ? CategoryIds.First() : 0;
+        SelectedCategoryId = CategoryIds.Any() ? CategoryIds.First().Id : 0;
         SelectedItem = null;
         StatusMessage = "Add new menu item";
         StatusColor = Brushes.Black;
@@ -202,6 +208,14 @@ public class MenuManagementViewModel : CancelableViewModelBase
         if (!CanSaveItem())
         {
             StatusMessage = "Please fill in all required fields (Name, Price, Category)";
+            StatusColor = Brushes.Red;
+            return;
+        }
+
+        // Check if user has required role for menu management
+        if (!IsAdminOrManager())
+        {
+            StatusMessage = "Access denied. Admin or Manager role required for menu management.";
             StatusColor = Brushes.Red;
             return;
         }
@@ -244,7 +258,7 @@ public class MenuManagementViewModel : CancelableViewModelBase
             }
             else
             {
-                StatusMessage = "Failed to save item. Please try again.";
+                StatusMessage = $"Failed to save item: '{ItemName}'. Backend returned empty response. Check network connection and try again.";
                 StatusColor = Brushes.Red;
             }
         }
@@ -280,6 +294,14 @@ public class MenuManagementViewModel : CancelableViewModelBase
     {
         if (SelectedItem == null)
         {
+            return;
+        }
+
+        // Check if user has required role for menu management
+        if (!IsAdminOrManager())
+        {
+            StatusMessage = "Access denied. Admin or Manager role required for menu management.";
+            StatusColor = Brushes.Red;
             return;
         }
 
@@ -328,6 +350,14 @@ public class MenuManagementViewModel : CancelableViewModelBase
             return;
         }
 
+        // Check if user has required role for menu management
+        if (!IsAdminOrManager())
+        {
+            StatusMessage = "Access denied. Admin or Manager role required for menu management.";
+            StatusColor = Brushes.Red;
+            return;
+        }
+
         IsLoading = true;
         var newAvailability = !SelectedItem.IsAvailable;
         StatusMessage = $"Setting '{SelectedItem.Name}' as {(newAvailability ? "available" : "unavailable")}...";
@@ -340,6 +370,134 @@ public class MenuManagementViewModel : CancelableViewModelBase
             if (success)
             {
                 StatusMessage = $"Item '{SelectedItem.Name}' is now {(newAvailability ? "available" : "unavailable")}!";
+                StatusColor = Brushes.Green;
+                
+                _manageMenuUseCase.InvalidateCache();
+                await LoadCategoriesAsync();
+            }
+            else
+            {
+                StatusMessage = "Failed to toggle availability. Please try again.";
+                StatusColor = Brushes.Red;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Operation cancelled.";
+            StatusColor = Brushes.Orange;
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error: {ex.Message}";
+            StatusColor = Brushes.Red;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private bool IsAdminOrManager()
+    {
+        var session = _authUseCase.CurrentSession;
+        if (session is null)
+        {
+            return false;
+        }
+
+        var role = session.Role?.ToLowerInvariant();
+        return role == "admin" || role == "manager";
+    }
+
+    private void SelectItem(MenuItem item)
+    {
+        if (item == null) return;
+        
+        SelectedItem = item;
+        ItemName = item.Name;
+        ItemDescription = item.Description;
+        ItemPrice = item.Price;
+        ItemPhotoUrl = item.PhotoUrl;
+        SelectedCategoryId = item.MenuCategoryId;
+        IsEditing = false;
+        StatusMessage = $"Selected: {item.Name}";
+        StatusColor = Brushes.Black;
+    }
+
+    private async Task DeleteItemDirectAsync(MenuItem item)
+    {
+        if (item == null) return;
+
+        // Check if user has required role for menu management
+        if (!IsAdminOrManager())
+        {
+            StatusMessage = "Access denied. Admin or Manager role required for menu management.";
+            StatusColor = Brushes.Red;
+            return;
+        }
+
+        IsLoading = true;
+        StatusMessage = $"Deleting '{item.Name}'...";
+        StatusColor = Brushes.Blue;
+
+        try
+        {
+            var success = await _manageMenuUseCase.DeleteItemAsync(item.Id, GetCancellationToken().Token);
+
+            if (success)
+            {
+                StatusMessage = $"Item '{item.Name}' deleted successfully!";
+                StatusColor = Brushes.Green;
+                
+                _manageMenuUseCase.InvalidateCache();
+                await LoadCategoriesAsync();
+            }
+            else
+            {
+                StatusMessage = "Failed to delete item. Please try again.";
+                StatusColor = Brushes.Red;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Operation cancelled.";
+            StatusColor = Brushes.Orange;
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error: {ex.Message}";
+            StatusColor = Brushes.Red;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task ToggleItemAvailabilityDirectAsync(MenuItem item)
+    {
+        if (item == null) return;
+
+        // Check if user has required role for menu management
+        if (!IsAdminOrManager())
+        {
+            StatusMessage = "Access denied. Admin or Manager role required for menu management.";
+            StatusColor = Brushes.Red;
+            return;
+        }
+
+        IsLoading = true;
+        var newAvailability = !item.IsAvailable;
+        StatusMessage = $"Setting '{item.Name}' as {(newAvailability ? "available" : "unavailable")}...";
+        StatusColor = Brushes.Blue;
+
+        try
+        {
+            var success = await _manageMenuUseCase.ToggleAvailabilityAsync(item.Id, newAvailability, GetCancellationToken().Token);
+
+            if (success)
+            {
+                StatusMessage = $"Item '{item.Name}' is now {(newAvailability ? "available" : "unavailable")}!";
                 StatusColor = Brushes.Green;
                 
                 _manageMenuUseCase.InvalidateCache();

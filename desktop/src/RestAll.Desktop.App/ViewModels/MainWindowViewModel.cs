@@ -1,3 +1,4 @@
+using System.Windows;
 using RestAll.Desktop.Core.Auth;
 using RestAll.Desktop.Core.Realtime;
 
@@ -11,6 +12,8 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     private bool _canOpenAdminDashboard;
     private bool _canOpenMenuManagement;
 
+    public event EventHandler? LogoutRequested;
+
     public MainWindowViewModel(IAuthenticateUserUseCase authUseCase, IRealtimeService realtimeService)
     {
         _authUseCase = authUseCase;
@@ -20,6 +23,30 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         _ = SyncRealtimeStateAsync();
         
         LogoutCommand = new AsyncRelayCommand(LogoutAsync);
+        
+        // Listen for session changes to handle logout redirect
+        _authUseCase.SessionChanged += async (s, e) =>
+        {
+            if (_authUseCase.State == AuthFlowState.Anonymous)
+            {
+                // Session ended - redirect to login
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    var app = (App)Application.Current;
+                    var loginView = app.CreateLoginView();
+                    
+                    // Close current main window
+                    if (Application.Current.MainWindow is not null)
+                    {
+                        Application.Current.MainWindow.Close();
+                    }
+                    
+                    // Show login view
+                    loginView.Show();
+                    Application.Current.MainWindow = loginView;
+                });
+            }
+        };
     }
 
     public string UserInfo
@@ -63,6 +90,12 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     {
         LoadUserInfo();
         _ = SyncRealtimeStateAsync();
+        
+        // If session ended (logout), notify view to redirect to login
+        if (_authUseCase.State == AuthFlowState.Anonymous)
+        {
+            LogoutRequested?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private async Task SyncRealtimeStateAsync()

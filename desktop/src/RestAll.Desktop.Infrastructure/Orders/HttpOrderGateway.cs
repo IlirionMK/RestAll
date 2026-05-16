@@ -104,21 +104,48 @@ public sealed class HttpOrderGateway : IOrderGateway
                 "application/json"
             );
 
-            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/orders", content, cancellationToken);
+            var endpoint = $"{_options.BaseUrl}/orders";
+            _logger.LogInformation("Creating order: POST {Endpoint} with table_id={TableId}", endpoint, tableId);
+
+            var response = await _httpClient.PostAsync(endpoint, content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            _logger.LogInformation("Create order response: HTTP {StatusCode}, Content: {Content}",
+                response.StatusCode, responseContent.Length > 500 ? responseContent.Substring(0, 500) : responseContent);
 
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogWarning("Failed to create order (HTTP {StatusCode}): {Response}", response.StatusCode, responseContent);
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(responseContent))
+            {
+                _logger.LogWarning("Backend returned empty response for order creation");
                 return null;
             }
 
             var data = JsonSerializer.Deserialize<JsonElement>(responseContent);
+            _logger.LogDebug("Response JSON Kind: {Kind}", data.ValueKind);
+            
             if (data.ValueKind != JsonValueKind.Object)
             {
+                _logger.LogWarning("Expected JSON object but got {Kind}", data.ValueKind);
                 return null;
             }
 
-            return ParseOrder(data);
+            var order = ParseOrder(data);
+            if (order is not null)
+            {
+                _logger.LogInformation("Order created successfully with ID {OrderId}", order.Id);
+            }
+            else
+            {
+                _logger.LogWarning("Order creation returned 200/201 but parsing failed. Response: {Response}",
+                    responseContent.Length > 500 ? responseContent.Substring(0, 500) : responseContent);
+            }
+
+            return order;
         }
         catch (Exception ex)
         {

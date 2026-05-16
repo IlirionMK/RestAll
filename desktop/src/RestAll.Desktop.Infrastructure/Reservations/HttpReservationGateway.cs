@@ -68,17 +68,17 @@ public sealed class HttpReservationGateway : IReservationGateway
     {
         try
         {
+            // Combine date and time into a single datetime for backend
+            var reservationDateTime = reservation.ReservationDate.Date + reservation.ReservationTime.TimeOfDay;
+            
             var requestBody = new
             {
-                customer_name = reservation.CustomerName,
-                customer_phone = reservation.CustomerPhone,
-                customer_email = reservation.CustomerEmail,
-                reservation_date = reservation.ReservationDate.ToString("yyyy-MM-dd"),
-                reservation_time = reservation.ReservationTime.ToString("HH:mm"),
                 table_id = reservation.TableId,
-                number_of_guests = reservation.NumberOfGuests,
-                special_requests = reservation.SpecialRequests
+                reservation_time = reservationDateTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                guests_count = reservation.NumberOfGuests
             };
+
+            _logger.LogInformation("Creating reservation: {RequestBody}", JsonSerializer.Serialize(requestBody));
 
             var content = new StringContent(
                 JsonSerializer.Serialize(requestBody),
@@ -89,8 +89,13 @@ public sealed class HttpReservationGateway : IReservationGateway
             var response = await _httpClient.PostAsync($"{_options.BaseUrl}/reservations", content, cancellationToken);
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
+            _logger.LogInformation("Create reservation response: HTTP {StatusCode}, Content: {ContentLength} bytes",
+                response.StatusCode, responseContent.Length);
+
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogWarning("Failed to create reservation (HTTP {StatusCode}): {Response}",
+                    response.StatusCode, responseContent);
                 return null;
             }
 
@@ -126,25 +131,28 @@ public sealed class HttpReservationGateway : IReservationGateway
     private Reservation? ParseReservation(JsonElement element)
     {
         if (!JsonParserHelper.TryGetIntProperty(element, "id", out var id) ||
-            !JsonParserHelper.TryGetStringProperty(element, "customer_name", out var customerName) ||
-            !JsonParserHelper.TryGetStringProperty(element, "customer_phone", out var customerPhone) ||
-            !JsonParserHelper.TryGetStringProperty(element, "customer_email", out var customerEmail) ||
-            !TryGetDateTime(element, "reservation_date", out var reservationDate) ||
-            !TryGetDateTime(element, "reservation_time", out var reservationTime) ||
             !JsonParserHelper.TryGetIntProperty(element, "table_id", out var tableId) ||
-            !JsonParserHelper.TryGetIntProperty(element, "number_of_guests", out var numberOfGuests) ||
+            !TryGetDateTime(element, "reservation_time", out var reservationTime) ||
+            !JsonParserHelper.TryGetIntProperty(element, "guests_count", out var numberOfGuests) ||
             !JsonParserHelper.TryGetStringProperty(element, "status", out var status))
         {
             return null;
         }
 
+        // Backend doesn't return customer details, so we use placeholders
+        var customerName = JsonParserHelper.TryGetStringProperty(element, "customer_name", out var name) ? name ?? string.Empty : string.Empty;
+        var customerPhone = JsonParserHelper.TryGetStringProperty(element, "customer_phone", out var phone) ? phone ?? string.Empty : string.Empty;
+        var customerEmail = JsonParserHelper.TryGetStringProperty(element, "customer_email", out var email) ? email ?? string.Empty : string.Empty;
         var specialRequests = JsonParserHelper.TryGetStringProperty(element, "special_requests", out var specialReqs) ? specialReqs : null;
+
+        // Extract date from reservation_time datetime
+        var reservationDate = reservationTime.Date;
 
         return new Reservation(
             id,
-            customerName ?? string.Empty,
-            customerPhone ?? string.Empty,
-            customerEmail ?? string.Empty,
+            customerName,
+            customerPhone,
+            customerEmail,
             reservationDate,
             reservationTime,
             tableId,

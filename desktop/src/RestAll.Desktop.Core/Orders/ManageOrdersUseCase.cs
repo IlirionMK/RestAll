@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using RestAll.Desktop.Core.Cache;
+using RestAll.Desktop.Core.Offline;
 
 namespace RestAll.Desktop.Core.Orders;
 
@@ -19,7 +20,8 @@ public sealed class ManageOrdersUseCase : IManageOrdersUseCase
     private readonly IOrderGateway _gateway;
     private readonly ICacheService _cache;
     private readonly ILogger<ManageOrdersUseCase> _logger;
-    private readonly RestAll.Desktop.Core.Offline.ISyncManager? _syncManager;
+    private readonly ISyncManager? _syncManager;
+    private readonly IOfflineStorage? _offlineStorage;
 
     public ManageOrdersUseCase(IOrderGateway gateway, ICacheService cache, ILogger<ManageOrdersUseCase> logger)
     {
@@ -28,11 +30,12 @@ public sealed class ManageOrdersUseCase : IManageOrdersUseCase
         _logger = logger;
     }
 
-    // Optional constructor with sync manager (DI will pick this if ISyncManager is registered)
-    public ManageOrdersUseCase(IOrderGateway gateway, ICacheService cache, ILogger<ManageOrdersUseCase> logger, RestAll.Desktop.Core.Offline.ISyncManager syncManager)
+    // Constructor with sync manager and offline storage
+    public ManageOrdersUseCase(IOrderGateway gateway, ICacheService cache, ILogger<ManageOrdersUseCase> logger, ISyncManager syncManager, IOfflineStorage offlineStorage)
         : this(gateway, cache, logger)
     {
         _syncManager = syncManager;
+        _offlineStorage = offlineStorage;
     }
 
     public async Task<List<Order>> GetOrdersAsync(CancellationToken cancellationToken)
@@ -106,64 +109,144 @@ public sealed class ManageOrdersUseCase : IManageOrdersUseCase
 
             return order;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (_offlineStorage is not null)
         {
-            _logger.LogWarning(ex, "CreateOrder failed, falling back to offline enqueue for table {TableId}", tableId);
-            if (_syncManager is not null)
-            {
-                var tempOrder = await _syncManager.EnqueueCreateOrderAsync(tableId, cancellationToken);
-                // Invalidate cache to reflect pending order
-                await _cache.RemoveAsync("orders", cancellationToken);
-                return tempOrder;
-            }
-
-            throw;
+            // Network error - create offline draft
+            _logger.LogWarning(ex, "CreateOrder failed, creating offline draft for table {TableId}", tableId);
+            
+            var localId = await _offlineStorage.CreatePendingOrderAsync(tableId, null, cancellationToken);
+            
+            // Return mock order with negative ID to indicate offline mode
+            var offlineOrder = new Order(
+                -localId,  // Negative ID = local only
+                tableId,
+                0,
+                0m,
+                OrderStatus.Pending,
+                new List<OrderItem>()
+            );
+            
+            // Invalidate cache to reflect pending order
+            await _cache.RemoveAsync("orders", cancellationToken);
+            return offlineOrder;
         }
     }
 
     public async Task<Order?> AddOrderItemsAsync(int orderId, List<OrderItem> items, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Adding {ItemCount} items to order {OrderId}", items.Count, orderId);
-        var order = await _gateway.AddOrderItemsAsync(orderId, items, cancellationToken);
         
-        if (order is not null)
+        try
         {
-            // Update cached order
-            var cacheKey = $"order_{orderId}";
-            await _cache.SetAsync(cacheKey, order, TimeSpan.FromMinutes(5), cancellationToken);
+            var order = await _gateway.AddOrderItemsAsync(orderId, items, cancellationToken);
+            
+            if (order is not null)
+            {
+                // Update cached order
+                var cacheKey = $"order_{orderId}";
+                await _cache.SetAsync(cacheKey, order, TimeSpan.FromMinutes(5), cancellationToken);
+            }
+            
+            return order;
         }
-        
-        return order;
+        catch (Exception ex) when (orderId < 0 && _offlineStorage is not null)
+        {
+            // Offline order (negative ID) - queue the operation
+            _logger.LogWarning(ex, "AddOrderItems failed for offline order {OrderId}, queuing for sync", orderId);
+            
+            var localOrderId = -orderId;
+            foreach (var item in items)
+            {
+                var pendingItem = new PendingOrderItem(
+                    item.MenuItemId,
+                    item.Name ?? "Unknown",
+                    item.Price,
+                    item.Quantity,
+                    item.Comment,
+                    "add"
+                );
+                await _offlineStorage.AddPendingOrderItemAsync(localOrderId, pendingItem, cancellationToken);
+            }
+            
+            // Return a mock order with items added locally
+            return new Order(orderId, 0, 0, 0m, OrderStatus.Pending, items);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding items to order {OrderId}", orderId);
+            throw;
+        }
     }
 
     public async Task<bool> RemoveOrderItemAsync(int orderId, int orderItemId, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Removing item {OrderItemId} from order {OrderId}", orderItemId, orderId);
-        var result = await _gateway.RemoveOrderItemAsync(orderId, orderItemId, cancellationToken);
         
-        if (result)
+        try
         {
-            // Invalidate order cache when items are removed
-            var cacheKey = $"order_{orderId}";
-            await _cache.RemoveAsync(cacheKey, cancellationToken);
+            var result = await _gateway.RemoveOrderItemAsync(orderId, orderItemId, cancellationToken);
+            
+            if (result)
+            {
+                // Invalidate order cache when items are removed
+                var cacheKey = $"order_{orderId}";
+                await _cache.RemoveAsync(cacheKey, cancellationToken);
+            }
+            
+            return result;
         }
-        
-        return result;
+        catch (Exception ex) when (orderId < 0 && _offlineStorage is not null)
+        {
+            // Offline order (negative ID) - queue the removal
+            _logger.LogWarning(ex, "RemoveOrderItem failed for offline order {OrderId}, queuing for sync", orderId);
+            
+            var localOrderId = -orderId;
+            await _offlineStorage.RemovePendingOrderItemAsync(localOrderId, orderItemId, cancellationToken);
+            return true; // Assume success for offline operations
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing item {OrderItemId} from order {OrderId}", orderItemId, orderId);
+            throw;
+        }
     }
 
     public async Task<bool> PayOrderAsync(int orderId, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Paying order {OrderId}", orderId);
-        var result = await _gateway.PayOrderAsync(orderId, cancellationToken);
         
-        if (result)
+        try
         {
-            // Invalidate order cache when order is paid
-            var cacheKey = $"order_{orderId}";
-            await _cache.RemoveAsync(cacheKey, cancellationToken);
+            var result = await _gateway.PayOrderAsync(orderId, cancellationToken);
+            
+            if (result)
+            {
+                // Invalidate order cache when order is paid
+                var cacheKey = $"order_{orderId}";
+                await _cache.RemoveAsync(cacheKey, cancellationToken);
+            }
+            
+            return result;
         }
-        
-        return result;
+        catch (Exception ex) when (orderId > 0 && _offlineStorage is not null)
+        {
+            // Online order but API failed - queue payment for later sync
+            _logger.LogWarning(ex, "PayOrder failed for order {OrderId}, queuing for sync", orderId);
+            
+            // Get order details to get the amount
+            var order = await GetOrderAsync(orderId, cancellationToken);
+            if (order is not null)
+            {
+                await _offlineStorage.AddPendingPaymentAsync(orderId, order.TotalAmount, null, cancellationToken);
+            }
+            
+            return true; // Assume will succeed when synced
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error paying order {OrderId}", orderId);
+            throw;
+        }
     }
 
     public async Task<bool> RequestBillAsync(int orderId, CancellationToken cancellationToken)

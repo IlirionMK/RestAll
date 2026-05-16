@@ -69,12 +69,19 @@
                                                             BorderThickness="1"
                                                             CornerRadius="3"
                                                             Margin="0,2"
-                                                            Padding="10,8">
+                                                            Padding="10,8"
+                                                            Cursor="Hand">
+                                                        <Border.InputBindings>
+                                                            <MouseBinding MouseAction="LeftClick"
+                                                                          Command="{Binding DataContext.SelectItemCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          CommandParameter="{Binding}"/>
+                                                        </Border.InputBindings>
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="*"/>
                                                                 <ColumnDefinition Width="100"/>
-                                                                <ColumnDefinition Width="100"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="Auto"/>
                                                             </Grid.ColumnDefinitions>
                                                             
                                                             <StackPanel Grid.Column="0">
@@ -96,19 +103,32 @@
                                                                        HorizontalAlignment="Right"
                                                                        Margin="0,0,10,0"/>
                                                             
-                                                            <StackPanel Grid.Column="2" 
-                                                                        Orientation="Horizontal" 
-                                                                        VerticalAlignment="Center" 
-                                                                        HorizontalAlignment="Right">
-                                                                <Button Content="{Binding IsAvailable, Converter={StaticResource BoolToAvailabilityTextConverter}}"
-                                                                        Background="Transparent"
-                                                                        BorderThickness="0"
-                                                                        Foreground="{Binding IsAvailable, Converter={StaticResource BoolToColorConverter}}"
-                                                                        FontWeight="SemiBold"
-                                                                        FontSize="11"
-                                                                        Padding="5,2"
-                                                                        Cursor="Hand"/>
-                                                            </StackPanel>
+                                                            <Button Grid.Column="2"
+                                                                    Content="🗑️"
+                                                                    ToolTip="Delete Item"
+                                                                    Background="Transparent"
+                                                                    BorderThickness="0"
+                                                                    Foreground="#F44336"
+                                                                    FontWeight="SemiBold"
+                                                                    FontSize="14"
+                                                                    Padding="5,2"
+                                                                    Cursor="Hand"
+                                                                    Margin="5,0,0,0"
+                                                                    Command="{Binding DataContext.DeleteItemDirectCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"/>
+                                                            
+                                                            <Button Grid.Column="3"
+                                                                    Content="{Binding IsAvailable, Converter={StaticResource BoolToAvailabilityTextConverter}}"
+                                                                    Background="Transparent"
+                                                                    BorderThickness="0"
+                                                                    Foreground="{Binding IsAvailable, Converter={StaticResource BoolToColorConverter}}"
+                                                                    FontWeight="SemiBold"
+                                                                    FontSize="11"
+                                                                    Padding="5,2"
+                                                                    Cursor="Hand"
+                                                                    Margin="5,0,0,0"
+                                                                    Command="{Binding DataContext.ToggleItemAvailabilityCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"/>
                                                         </Grid>
                                                     </Border>
                                                 </DataTemplate>
@@ -154,7 +174,9 @@
 
                     <TextBlock Text="Category" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
                     <ComboBox ItemsSource="{Binding CategoryIds}"
-                              SelectedItem="{Binding SelectedCategoryId}"
+                              SelectedValue="{Binding SelectedCategoryId}"
+                              SelectedValuePath="Id"
+                              DisplayMemberPath="Name"
                               Height="30" 
                               Margin="0,0,0,15"
                               Padding="5"
